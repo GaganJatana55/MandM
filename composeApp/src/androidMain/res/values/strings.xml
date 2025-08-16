@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">MandM</string>
+    <string name="name">Name</string>
+    <string name="ltr">Ltr.</string>
+    <string name="slash_snf">Rs./SNF pt.</string>
+
+    <string name="Rs">Rs.</string>
+</resources>
