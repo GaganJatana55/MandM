@@ -5,15 +5,20 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -42,15 +47,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mandm.composeapp.generated.resources.Res
 import mandm.composeapp.generated.resources.left_icon
-import org.example.mandm.backgroundCommonCard
 import org.example.mandm.paddingCommon
 import org.example.mandm.roundCorner
 import org.example.mandm.roundCornerBottom
 import org.jetbrains.compose.resources.painterResource
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import org.example.mandm.mainBackground
+import org.example.mandm.roundCorneButton
+import org.example.mandm.roundCornerTop
+import org.example.mandm.theme.AppColors
 import org.jetbrains.compose.ui.tooling.preview.Preview
-import kotlin.math.exp
 
 @Composable
 fun GetDivider(modifier: Modifier = Modifier) {
@@ -65,10 +71,10 @@ fun GetCommonScaffoldForTabs(
     topBar: @Composable () -> Unit,
     content: @Composable () -> Unit
 ) {
-    Scaffold(topBar = { TopBar { topBar() } }, modifier = Modifier.background(Color.Transparent)) {
+    Scaffold(topBar = { TopBar { topBar() } }, modifier = Modifier.mainBackground()) {
         Surface(
             modifier = modifier.padding(top = it.calculateTopPadding()).paddingCommon()
-                .backgroundCommonCard(),
+                .mainBackground(),
             shape = roundCorner(),
             shadowElevation = 2.dp
         ) {
@@ -134,16 +140,20 @@ fun CommonInputBox(
     value: String = "",
     hintText: String = "Search",
     errorText: String = "",
+    disabled: Boolean = false,
     keyboardType: KeyboardType = KeyboardType.Unspecified,
     onValueChange: (String) -> Unit = {},
 ) {
     var textValue by rememberSaveable { mutableStateOf(value) }
-    var errorValue by rememberSaveable { mutableStateOf(value) }
+    var errorValue by rememberSaveable { mutableStateOf(errorText) }
     var userInteracted by rememberSaveable { mutableStateOf(false) }
     Column(modifier = modifier) {
         BasicTextField(
             value = textValue,
             onValueChange = {
+                if (disabled) {
+                    return@BasicTextField
+                }
                 textValue = it
                 errorValue = ""
                 onValueChange.invoke(it)
@@ -226,7 +236,7 @@ fun <T> AutoCompleteDropdown(
             onDismissRequest = { expanded = false }) {
             list.forEach {
                 DropdownMenuItem(
-                    text = { DropDownItem(value="Test")},
+                    text = { DropDownItem(value = "Test") },
                     onClick = { onItemSelected(it) }
                 )
             }
@@ -234,10 +244,244 @@ fun <T> AutoCompleteDropdown(
         }
     }
 }
+
 @Preview
 @Composable
-fun DropDownItem(modifier: Modifier= Modifier,value: String="Test"){
-    Box(modifier = modifier.padding(horizontal = 6.dp, vertical = 10.dp).background(MaterialTheme.colorScheme.onSurface), Alignment.CenterStart){
-        Text(text = value, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+fun DropDownItem(modifier: Modifier = Modifier, value: String = "Test") {
+    Box(
+        modifier = modifier.padding(horizontal = 6.dp, vertical = 10.dp)
+            .background(MaterialTheme.colorScheme.onSurface), Alignment.CenterStart
+    ) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold
+        )
     }
+}
+
+
+@Composable
+fun CustomColoredCheckbox(
+    modifier: Modifier = Modifier,
+    checked: Boolean = false,
+    onCheckedChange: (Boolean) -> Unit = {}
+) {
+
+
+    Checkbox(
+        modifier = modifier,
+        checked = checked,
+        onCheckedChange = {
+            onCheckedChange(it)
+        },
+        colors = CheckboxDefaults.colors(
+            checkedColor = MaterialTheme.colorScheme.secondary,          // box fill when checked
+            uncheckedColor = MaterialTheme.colorScheme.primary,          // outline when unchecked
+            checkmarkColor = Color.White         // tick color
+        )
+    )
+
+}
+
+@Preview
+@Composable
+fun TextInputWithTitle(
+    modifier: Modifier = Modifier,
+    title: String = "Title",
+    value: String = "Name",
+    hintText: String = "0.0",
+    disabled: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    errorText: String = ""
+) {
+    Column(modifier = modifier.padding(vertical = 6.dp, horizontal = 8.dp)) {
+        Text(
+            modifier = Modifier.padding(start = 4.dp),
+            text = title,
+            fontWeight = FontWeight.Normal,
+            fontSize = 12.sp
+        )
+        CommonInputBox(
+            modifier = Modifier.padding(top = 4.dp),
+            hintText = hintText,
+            keyboardType = keyboardType,
+            errorText = errorText,
+            value = value,
+            disabled = disabled,
+
+            )
+    }
+}
+
+@Preview
+@Composable
+fun ButtonRoundCorner(
+    modifier: Modifier = Modifier,
+    text: String = "Button",
+    icon: Painter? = null, // ✅ optional icon
+    colors: ButtonColors = ButtonDefaults.buttonColors(
+        containerColor = MaterialTheme.colorScheme.secondary,
+        contentColor = MaterialTheme.colorScheme.onPrimary
+    ),
+    onClick: () -> Unit = {}
+) {
+    Button(
+        modifier = modifier,
+        onClick = onClick,
+        colors = colors,
+        shape = roundCorner()
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.Center
+        ) {
+            if (icon != null) {
+                Icon(
+                    painter = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+
+            Text(
+                text = text,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+fun ButtonRectangular(
+    modifier: Modifier = Modifier,
+    text: String = "Button",
+    color: Color = MaterialTheme.colorScheme.secondary,
+    icon: Painter? = null, // pass drawable/vector painter here
+    onClick: () -> Unit = {}
+) {
+    Box(
+        modifier = modifier
+            .background(
+                color = color,
+                shape = roundCorneButton() // rounded corners
+            )
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp, vertical = 3.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            // ✅ Start drawable
+            if (icon != null) {
+                Icon(
+                    painter = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSecondary,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+
+            // ✅ Button text
+            Text(
+                text = text,
+                color = AppColors.White,
+                style = MaterialTheme.typography.labelSmall
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+fun CommonSurfaceCard(
+    modifier: Modifier = Modifier,
+    contentAlignMent: Alignment = Alignment.TopStart,
+    content: @Composable () -> Unit
+) {
+
+    Surface(
+        modifier.mainBackground(),
+        shape = roundCorner(),
+        shadowElevation = 2.dp
+    ) {
+        Box(Modifier, contentAlignment = contentAlignMent) {
+            content()
+        }
+    }
+
+}
+
+
+@Composable
+fun TopSurfaceCard(
+    modifier: Modifier = Modifier,
+    contentAlignMent: Alignment = Alignment.TopStart,
+    content: @Composable () -> Unit
+) {
+    Surface(
+        modifier = modifier
+            .mainBackground(),
+        shape = roundCorneButton(),
+        shadowElevation = 2.dp
+    ) {
+        Box(Modifier.paddingCommon(), contentAlignment = contentAlignMent) {
+            content()
+        }
+    }
+}
+
+@Composable
+fun BottomSurfaceCard(
+    modifier: Modifier = Modifier,
+    contentAlignMent: Alignment = Alignment.TopStart,
+    content: @Composable () -> Unit
+) {
+    Surface(
+        modifier = modifier
+            .mainBackground().paddingCommon(),
+        shape = roundCornerBottom(),
+        shadowElevation = 2.dp
+    ) {
+        Box(Modifier.paddingCommon(), contentAlignment = contentAlignMent) {
+            content()
+        }
+    }
+}
+
+
+@Composable
+fun GetCommonScaffoldWithColumnCenter(
+    modifier: Modifier = Modifier,
+    topBarContentAlignment: Alignment = Alignment.TopStart,
+    topBar: @Composable () -> Unit,
+    content: @Composable () -> Unit,
+
+    ) {
+    Scaffold(topBar = {
+        TopBar {
+            Box(
+                modifier = Modifier.fillMaxWidth()
+                    .padding(WindowInsets.statusBars.asPaddingValues()).padding(bottom = 8.dp),
+                contentAlignment = topBarContentAlignment
+            ) { topBar() }
+        }
+    }, modifier = Modifier.mainBackground().fillMaxSize()) {
+        Surface(
+            modifier = modifier.fillMaxSize().padding(top = it.calculateTopPadding())
+        ) {
+            Column(Modifier.fillMaxSize().mainBackground().paddingCommon()) {
+                content()
+            }
+        }
+    }
+}
+
+@Composable
+fun FormSpacer(){
+    Spacer(Modifier.height(2.dp))
 }

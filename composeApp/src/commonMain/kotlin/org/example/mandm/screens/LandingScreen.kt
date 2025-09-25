@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import mandm.composeapp.generated.resources.Res
 import mandm.composeapp.generated.resources.home_icon
@@ -67,11 +68,11 @@ fun ThreeWaySwitch(selected: Int = 1, onSelect: (Int) -> Unit) {
                         onSelect(index)
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.background,
+                        containerColor = if (isSelected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.background,
                         contentColor = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
                     )
                 ) {
-                    Text(label)
+                    Text(text=label, fontWeight = FontWeight.SemiBold )
                 }
             }
         }

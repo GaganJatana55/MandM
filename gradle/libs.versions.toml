@@ -11,6 +11,7 @@ androidx-espresso = "3.6.1"
 androidx-lifecycle = "2.8.4"
 androidx-testExt = "1.2.1"
 composeMultiplatform = "1.8.0"
+voyager = "1.0.0"
 
 androidx-core-ktx = "1.16.0"
 junit = "4.13.2"
@@ -49,6 +50,10 @@ androidx-room-runtime = { group = "androidx.room", name = "room-runtime", versio
 sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
 
 compose-resources = { module = "org.jetbrains.compose.resources:resources", version = "1.6.10" }
+
+# Voyager (Compose Multiplatform Navigation)
+voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyager" }
+voyager-tab-navigator = { module = "cafe.adriel.voyager:voyager-tab-navigator", version.ref = "voyager" }
 
 
 [plugins]

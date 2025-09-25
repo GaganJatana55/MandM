@@ -58,8 +58,11 @@ kotlin {
             implementation(libs.androidx.room.runtime)
             implementation(libs.sqlite.bundled)
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
+            implementation("com.russhwolf:multiplatform-settings-no-arg:1.1.1")
 
             api(libs.koin.core)
+            implementation(libs.voyager.navigator)
+            implementation(libs.voyager.tab.navigator)
         }
 
         commonTest.dependencies {

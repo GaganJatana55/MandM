@@ -14,6 +14,7 @@ class UserRepoImpl(val userDao: UserDao): UserRepo {
     }
 
     override suspend fun insertUser(): Long {
-     return   userDao.insert(User(name = "Gagaaaagn"))
+//     return   userDao.insert(User(name = "Gagaaaagn"))
+        return -1
     }
 }

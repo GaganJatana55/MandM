@@ -9,10 +9,10 @@ import org.example.mandm.theme.AppTypography
 private val LightColorScheme = lightColorScheme(
     primary = Color(0xFF103D27),
     onPrimary = Color.White,
-    secondary = Color(0xFFFF9800),
+    secondary = Color(0xFFEE7722),  //orange one
     onSecondary = Color.Black,
-    background = Color(0xFFF1FDF2),
-    onBackground = Color(0xFF212121),
+    background = Color(0xFFF1FDF2),//light green background
+    onBackground = Color(0xFF212121), //grey black
     surface = Color.White,
     onSurface = Color.Black,
 )
@@ -20,11 +20,11 @@ private val LightColorScheme = lightColorScheme(
 private val DarkColorScheme = darkColorScheme(
     primary = Color(0xFF004938),     // Consistent dark green
     onPrimary = Color.White,
-    secondary = Color(0xFFFF9800),   // Same orange
+    secondary = Color(0xFFEE7722),   // Same orange
     onSecondary = Color.Black,
-    background = Color(0xFF121212),
+    background = Color(0xFF121212),//black
     onBackground = Color.White,
-    surface = Color(0xFF1E1E1E),
+    surface = Color(0xFF3d3f41), //grey black
     onSurface = Color.White,
 )
 
