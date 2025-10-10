@@ -2,19 +2,27 @@
 package org.example.mandm.di
 
 import org.example.mandm.AppDatabase
-import org.example.mandm.AppDatabaseConstructor
-import org.example.mandm.UserDao
-import org.example.mandm.domain.UserRepo
-import org.example.mandm.repo.UserRepoImpl
-import org.koin.core.module.dsl.singleOf
-import org.koin.dsl.bind
+import org.example.mandm.dao.CustomerDao
+import org.example.mandm.dao.MilkDao
+import org.example.mandm.dao.MoneyDao
+import org.example.mandm.dao.RouteDao
+import org.example.mandm.repo.CustomerRepository
+import org.example.mandm.repo.MilkRepository
+import org.example.mandm.repo.MoneyRepository
+import org.example.mandm.repo.RouteRepository
 import org.koin.dsl.module
 
-//expect val platformDataModule: Module
 val dataModule = module {
-//    single<UserRepo> {
-//        UserRepoImpl()
-//    }
-    singleOf(::UserRepoImpl).bind<UserRepo>()
-    single<UserDao> { get<AppDatabase>().userDao() }
+    single<CustomerDao> { get<AppDatabase>().customerDao() }
+    single<RouteDao> { get<AppDatabase>().routeDao() }
+    single<MilkDao> { get<AppDatabase>().milkDao() }
+    single<MoneyDao> { get<AppDatabase>().moneyDao() }
+    single { get<AppDatabase>().userDao() }
+
+    single { CustomerRepository(get()) }
+    single { RouteRepository(get()) }
+    single { MilkRepository(get()) }
+    single { MoneyRepository(get()) }
+
+
 }

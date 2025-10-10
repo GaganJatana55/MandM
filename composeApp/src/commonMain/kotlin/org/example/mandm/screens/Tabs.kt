@@ -1,5 +1,6 @@
 package org.example.mandm.screens
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -7,12 +8,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.key
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import kotlinx.coroutines.flow.MutableSharedFlow
+import org.example.mandm.viewModels.CustomerViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 // Home Tab
 object HomeTab : Tab {
@@ -26,13 +31,7 @@ object HomeTab : Tab {
 
     @Composable
     override fun Content() {
-        key(version) {
-            Navigator(HomeLandingScreen()) { nav ->
-                LaunchedEffect(Unit) {
-                    resetFlow.collect { nav.replaceAll(HomeLandingScreen()) }
-                }
-            }
-        }
+        DailyRouteData()
     }
 }
 
@@ -55,13 +54,7 @@ object SettingsTab : Tab {
 
     @Composable
     override fun Content() {
-        key(version) {
-            Navigator(SettingsLandingScreen()) { nav ->
-                LaunchedEffect(Unit) {
-                    resetFlow.collect { nav.replaceAll(SettingsLandingScreen()) }
-                }
-            }
-        }
+        SignInUI()
     }
 }
 
@@ -84,20 +77,17 @@ object SummaryTab : Tab {
 
     @Composable
     override fun Content() {
-        key(version) {
-            Navigator(SummaryLandingScreen()) { nav ->
-                LaunchedEffect(Unit) {
-                    resetFlow.collect { nav.replaceAll(SummaryLandingScreen()) }
-                }
-            }
-        }
+        SummaryLandingScreen().Content()
     }
 }
 
 class SummaryLandingScreen : Screen {
     @Composable
     override fun Content() {
-        SignUpUI()
+        val vm: CustomerViewModel = koinViewModel()
+        LaunchedEffect(Unit) { vm.observeAllCustomers() }
+        val state = vm.uiState.collectAsState()
+        UsersList(users = state.value.customers)
     }
 }
 
@@ -113,20 +103,17 @@ object UsersTab : Tab {
 
     @Composable
     override fun Content() {
-        key(version) {
-            Navigator(UsersLandingScreen()) { nav ->
-                LaunchedEffect(Unit) {
-                    resetFlow.collect { nav.replaceAll(UsersLandingScreen()) }
-                }
-            }
-        }
+        UsersLandingScreen().Content()
     }
 }
 
 class UsersLandingScreen : Screen {
     @Composable
     override fun Content() {
-        SelectRole()
+        val vm: CustomerViewModel = koinViewModel()
+        LaunchedEffect(Unit) { vm.observeAllCustomers() }
+        val state = vm.uiState.collectAsState()
+        UserListHome(users = state.value.customers)
     }
 }
 

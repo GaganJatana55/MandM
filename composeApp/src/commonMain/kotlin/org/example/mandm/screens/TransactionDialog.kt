@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -25,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,11 +48,31 @@ import org.example.mandm.commonComponent.CustomColoredCheckbox
 import org.example.mandm.commonComponent.SelectableOptionWithCheckbox
 import org.example.mandm.commonComponent.TextInputWithTitle
 import org.example.mandm.commonComponent.ValidatedInputField
+import org.example.mandm.commonComponent.BuySellSwitch
 import org.example.mandm.dataModel.User
 import org.example.mandm.dataModel.dummyUser
+import org.example.mandm.PricingUtils
+import org.example.mandm.formatMoney
 import org.example.mandm.roundCorner
+import org.example.mandm.TransactionTypeConstants
+import org.example.mandm.commonComponent.FilledActionButton
+import org.example.mandm.commonComponent.OutlineActionButton
+import org.example.mandm.theme.AppColors
 import org.jetbrains.compose.resources.painterResource
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
+import org.example.mandm.viewModels.DashboardViewModel
+import org.koin.compose.viewmodel.koinViewModel
+import org.example.mandm.dataModel.CustomerEntity
+import org.example.mandm.DateTimeUtil
+import org.example.mandm.commonComponent.DateInputField
+import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 sealed class Tabs {
     object MilkOnly : Tabs()
@@ -75,6 +97,7 @@ fun TransactionDialog(
             usePlatformDefaultWidth = false, dismissOnClickOutside = true, dismissOnBackPress = true
         )
     ) {
+        val dashboardViewModel: DashboardViewModel = koinViewModel()
         var selectedTab by rememberSaveable { mutableStateOf(0) }
         Row(
             modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.1f))
@@ -99,6 +122,7 @@ fun TransactionDialog(
 
             ) {
                 Column {
+                    var showCreateUser by rememberSaveable { mutableStateOf(false) }
                     TabRow(
                         selectedTabIndex = selectedTab,
 
@@ -134,14 +158,28 @@ fun TransactionDialog(
                         Image(
                             modifier = Modifier.size(42.dp)
                                 .background(color = MaterialTheme.colorScheme.surface)
-                                .commonBorder().padding(4.dp),
+                                .commonBorder().padding(4.dp)
+                                .clickable { showCreateUser = true },
                             painter = painterResource(Res.drawable.add_user_icon),
                             contentDescription = "Add user Button",
                             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
                         )
 
                     }
-                    MilkTransaction(Modifier.padding(top = 8.dp))
+                    MilkTransaction(
+                        Modifier.padding(top = 8.dp),
+                        onSaveClick = onSaveClick,
+                        onSkipClick = onSkipClick
+                    )
+                    if (showCreateUser) {
+                        CreateUserDialog(
+                            onDismiss = { showCreateUser = false },
+                            onSaved = {
+                                // Parent can react with created customer if needed
+                                showCreateUser = false
+                            }
+                        )
+                    }
                 }
             }
             Spacer(Modifier.width(2.dp))
@@ -166,20 +204,41 @@ fun TabText(modifier: Modifier = Modifier, text: String = "Milk") {
 
 @Preview
 @Composable
-fun MilkTransaction(modifier: Modifier = Modifier, user: User = dummyUser) {
+fun MilkTransaction(
+    modifier: Modifier = Modifier,
+    user: User = dummyUser,
+    onSaveClick: () -> Unit = {},
+    onSkipClick: () -> Unit = {}
+) {
     var priceMode by rememberSaveable { mutableStateOf(PriceMode.FixPrice) }
+    var transactionType by rememberSaveable { mutableStateOf(TransactionTypeConstants.Milk.BUY) }
+    var pricePerLiterInput by rememberSaveable { mutableStateOf("") }
+    var quantityInput by rememberSaveable { mutableStateOf("") }
+    var snfInput by rememberSaveable { mutableStateOf("") }
+    var snfPriceInput by rememberSaveable { mutableStateOf("") }
+
+    val totalAmount = PricingUtils.calculateMilkTotal(
+        mode = priceMode,
+        pricePerLiter = pricePerLiterInput.toDoubleOrNull(),
+        quantity = quantityInput.toDoubleOrNull(),
+        snf = snfInput.toDoubleOrNull(),
+        snfPrice = snfPriceInput.toDoubleOrNull()
+    )
+    val totalText = if (totalAmount > 0.0) totalAmount.formatMoney() else ""
     Surface(
         modifier = modifier.padding(top = 6.dp, bottom = 8.dp).padding(horizontal = 8.dp)
             .border(1.dp, MaterialTheme.colorScheme.primary, roundCorner())
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
-            Row {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 ValidatedInputField(
                     modifier = Modifier.weight(1f),
                     hintText = "Name",
                     initialValue = user.name,
                     disabled = true,
                 )
+                Spacer(Modifier.width(8.dp))
+                BuySellSwitch(value = transactionType, onChange = { transactionType = it })
 
             }
             Spacer(Modifier.height(10.dp))
@@ -204,36 +263,95 @@ fun MilkTransaction(modifier: Modifier = Modifier, user: User = dummyUser) {
 
             }
             if (priceMode == PriceMode.SnfPrice) {
+                // Row: SNF and SNF Price
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     ValidatedInputField(
                         Modifier.weight(1f),
                         title = "SNF",
-                        initialValue = "",
-                        keyboardType = KeyboardType.Decimal
+                        initialValue = snfInput,
+                        keyboardType = KeyboardType.Decimal,
+                        onValidationChanged = { _, v -> snfInput = v }
                     )
                     ValidatedInputField(
                         Modifier.weight(1f),
                         title = "SNF Price",
-                        initialValue = "",
+                        initialValue = snfPriceInput,
+                        keyboardType = KeyboardType.Decimal,
+                        onValidationChanged = { _, v -> snfPriceInput = v }
+                    )
+                }
+                // Full-width Quantity
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    ValidatedInputField(
+                        Modifier.weight(1f),
+                        title = "Quantity",
+                        initialValue = quantityInput,
+                        keyboardType = KeyboardType.Decimal,
+                        onValidationChanged = { _, v -> quantityInput = v }
+                    )
+                    DateInputField(
+                        modifier = Modifier.weight(1f).padding(start = 8.dp),
+                        title = "Date",
+                        hintText = "Select date",
+                        onDateChanged = { /* you can capture selected date here if needed */ }
+                    )
+                }
+            } else {
+                // FixPrice mode: Full-width Price/Ltr, then Quantity
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    ValidatedInputField(
+                        Modifier.weight(1f),
+                        title = "Price/Ltr",
+                        initialValue = pricePerLiterInput,
+                        keyboardType = KeyboardType.Decimal,
+                        onValidationChanged = { _, v -> pricePerLiterInput = v }
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    ValidatedInputField(
+                        Modifier.weight(1f),
+                        title = "Quantity",
+                        initialValue = quantityInput,
+                        keyboardType = KeyboardType.Decimal,
+                        onValidationChanged = { _, v -> quantityInput = v }
+                    )
+                    DateInputField(
+                        modifier = Modifier.weight(1f).padding(start = 8.dp),
+                        title = "Date",
+                        hintText = "Select date",
+                        onDateChanged = { /* capture selected date if needed */ }
+                    )
+                }
+            }
+
+            // Disabled Total field (full width), updates with inputs
+            key(totalText) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    ValidatedInputField(
+                        Modifier.weight(1f),
+                        title = "Total",
+                        initialValue = totalText,
+                        disabled = true,
                         keyboardType = KeyboardType.Decimal
                     )
                 }
             }
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                ValidatedInputField(
-                    Modifier.weight(1f),
-                    title = "Price/Ltr",
-                    initialValue = "",
-                    keyboardType = KeyboardType.Decimal
-                )
-                ValidatedInputField(
-                    Modifier.weight(1f),
-                    title = "Quantity",
-                    initialValue = "",
-                    disabled = true,
-                    keyboardType = KeyboardType.Decimal
-                )
+            Spacer(Modifier.height(10.dp))
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                OutlineActionButton(
+                    modifier = Modifier.weight(1f).heightIn(52.dp),
+                    text = "Skip",
+                    borderColor = MaterialTheme.colorScheme.error,
+                ) { onSkipClick() }
+
+                Spacer(Modifier.width(10.dp))
+
+                FilledActionButton(
+                    modifier = Modifier.weight(1f).heightIn(52.dp),
+                    text = "Save",
+                    fillColor = AppColors.Green,
+                ) { onSaveClick() }
             }
 
         }

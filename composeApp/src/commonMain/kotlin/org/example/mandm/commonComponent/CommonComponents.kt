@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -57,6 +58,9 @@ import org.example.mandm.roundCorneButton
 import org.example.mandm.roundCornerTop
 import org.example.mandm.theme.AppColors
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
+import org.example.mandm.TransactionTypeConstants
+import org.example.mandm.UserTypeConstants
 
 @Composable
 fun GetDivider(modifier: Modifier = Modifier) {
@@ -204,6 +208,93 @@ fun CommonInputBox(
         }
     }
 
+}
+
+@Composable
+fun BuySellSwitch(
+    modifier: Modifier = Modifier,
+    value: String = TransactionTypeConstants.Milk.BUY,
+    onChange: (String) -> Unit = {}
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .heightIn(46.dp)
+            .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
+            .padding(horizontal = 6.dp)
+    ) {
+        val isBuy = value == TransactionTypeConstants.Milk.BUY
+        val isSell = value == TransactionTypeConstants.Milk.SELL
+        Text(
+            text = "Buy",
+            modifier = Modifier
+                .clickable { onChange(TransactionTypeConstants.Milk.BUY) }
+
+                .background(
+                    if (isBuy) AppColors.Green.copy(alpha = 0.18f) else Color.Transparent,
+                    shape = RoundedCornerShape(10.dp)
+                ) .padding(horizontal = 10.dp, vertical = 6.dp),
+            color = if (isBuy) AppColors.Green else MaterialTheme.colorScheme.onSurface,
+            fontWeight = if (isBuy) FontWeight.SemiBold else FontWeight.Normal,
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(
+            text = "Sold",
+            modifier = Modifier
+                .clickable { onChange(TransactionTypeConstants.Milk.SELL) }
+
+                .background(
+                    if (isSell) AppColors.Red.copy(alpha = 0.18f) else Color.Transparent,
+                    shape = RoundedCornerShape(10.dp)
+                )
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+            color = if (isSell) AppColors.Red else MaterialTheme.colorScheme.onSurface,
+            fontWeight = if (isSell) FontWeight.SemiBold else FontWeight.Normal,
+        )
+    }
+}
+
+@Composable
+fun BuyerSellerSwitch(
+    modifier: Modifier = Modifier,
+    value: String = UserTypeConstants.BUYER,
+    onChange: (String) -> Unit = {}
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .heightIn(46.dp)
+            .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
+            .padding(horizontal = 6.dp)
+    ) {
+        val isBuyer = value == UserTypeConstants.BUYER
+        val isSeller = value == UserTypeConstants.SELLER
+        Text(
+            text = "Buyer",
+            modifier = Modifier
+                .clickable { onChange(UserTypeConstants.BUYER) }
+                .background(
+                    if (isBuyer) AppColors.Green.copy(alpha = 0.18f) else Color.Transparent,
+                    shape = RoundedCornerShape(10.dp)
+                )
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+            color = if (isBuyer) AppColors.Green else MaterialTheme.colorScheme.onSurface,
+            fontWeight = if (isBuyer) FontWeight.SemiBold else FontWeight.Normal,
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(
+            text = "Seller",
+            modifier = Modifier
+                .clickable { onChange(UserTypeConstants.SELLER) }
+                .background(
+                    if (isSeller) AppColors.Red.copy(alpha = 0.18f) else Color.Transparent,
+                    shape = RoundedCornerShape(10.dp)
+                )
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+            color = if (isSeller) AppColors.Red else MaterialTheme.colorScheme.onSurface,
+            fontWeight = if (isSeller) FontWeight.SemiBold else FontWeight.Normal,
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

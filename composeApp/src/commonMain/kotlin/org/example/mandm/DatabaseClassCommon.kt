@@ -1,37 +1,43 @@
 package org.example.mandm
 
 import androidx.room.ConstructedBy
-import androidx.room.Dao
 import androidx.room.Database
-import androidx.room.Delete
-import androidx.room.Query
 import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
-import androidx.room.Upsert
-import kotlinx.coroutines.flow.Flow
+import org.example.mandm.dao.CustomerDao
+import org.example.mandm.dao.MilkDao
+import org.example.mandm.dao.MoneyDao
+import org.example.mandm.dao.RouteDao
+import org.example.mandm.dao.UserDao
+import org.example.mandm.dataModel.CustomerEntity
+import org.example.mandm.dataModel.CustomerRouteEntity
+import org.example.mandm.dataModel.MilkTransactionEditLogEntity
+import org.example.mandm.dataModel.MilkTransactionEntity
+import org.example.mandm.dataModel.MoneyTransactionEditLogEntity
+import org.example.mandm.dataModel.MoneyTransactionEntity
+import org.example.mandm.dataModel.RouteEntity
 import org.example.mandm.dataModel.User
-@Dao
-interface UserDao {
 
-    @Upsert
-    suspend fun insert(user: User): Long
-
-    @Query("SELECT * FROM user WHERE id = :id")
-    fun getUserById(id: Int): Flow<User?>
-
-    @Delete
-    suspend fun delete(user: User)
-
-    @Query("DELETE FROM user WHERE id = :id")
-    suspend fun deleteById(id: Int): Int
-
-    @Query("SELECT * FROM user")
-    fun getAllUsers(): Flow<List<User>>
-}
-@Database(entities = [User::class], version = 1)
+@Database(
+    entities = [
+        CustomerEntity::class,
+        RouteEntity::class,
+        CustomerRouteEntity::class,
+        MilkTransactionEntity::class,
+        MilkTransactionEditLogEntity::class,
+        MoneyTransactionEntity::class,
+        MoneyTransactionEditLogEntity::class,
+        User::class
+    ],
+    version = 1
+)
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun userDao(): UserDao
+    abstract fun customerDao(): CustomerDao
+    abstract fun routeDao(): RouteDao
+    abstract fun milkDao(): MilkDao
+    abstract fun moneyDao(): MoneyDao
+        abstract fun userDao(): UserDao
 }
 
 @Suppress("KotlinNoActualForExpect", "EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")

@@ -16,6 +16,12 @@ object TransactionStatus{
     const val ADDED="Added"
 }
 
+// ---- User types ----
+object UserTypeConstants{
+    const val BUYER = "Buyer"
+    const val SELLER = "Seller"
+}
+
 // ---- App roles ----
 enum class RoleType(val displayName: String) {
     Dodhi("Dodhi"),
