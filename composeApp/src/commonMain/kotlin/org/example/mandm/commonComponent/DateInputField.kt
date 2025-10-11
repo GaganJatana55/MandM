@@ -41,13 +41,14 @@ fun DateInputField(
 ) {
     var showPicker by remember { mutableStateOf(false) }
     val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-    var selectedDate by remember { mutableStateOf(initialDate ?: today) }
+    var selectedDate by remember { mutableStateOf(initialDate) }
     var errorText by remember { mutableStateOf("") }
 
     fun validate(date: LocalDate?): Boolean {
         if (date == null) {
-            errorText = "Please select a date"
-            return false
+            // treat empty as valid (optional field)
+            errorText = ""
+            return true
         }
         if (minDate != null && date < minDate) {
             errorText = "Date before allowed range"
@@ -59,6 +60,31 @@ fun DateInputField(
         }
         errorText = ""
         return true
+    }
+
+    fun displayText(date: LocalDate?): String {
+        if (date == null) return ""
+        val todayStr = today.toString()
+        if (date.toString() == todayStr) return "Today"
+        val d = date.dayOfMonth
+        val m = date.month
+        val y = date.year
+        val monthAbbr = when (m.ordinal) {
+            0 -> "Jan"
+            1 -> "Feb"
+            2 -> "Mar"
+            3 -> "Apr"
+            4 -> "May"
+            5 -> "Jun"
+            6 -> "Jul"
+            7 -> "Aug"
+            8 -> "Sep"
+            9 -> "Oct"
+            10 -> "Nov"
+            else -> "Dec"
+        }
+        val dd = if (d < 10) "0$d" else "$d"
+        return "$dd-$monthAbbr-$y"
     }
 
     LaunchedEffect(selectedDate) {
@@ -80,11 +106,12 @@ fun DateInputField(
         }
 
         // Readonly input-like box
+        val shown = displayText(selectedDate)
         OutlinedTextFieldDefaults.DecorationBox(
-            value = selectedDate?.toString() ?: "",
+            value = shown,
             innerTextField = {
                 Text(
-                    text = selectedDate?.toString() ?: hintText,
+                    text = if (shown.isNotEmpty()) shown else hintText,
                     style = MaterialTheme.typography.bodyMedium,
                     color = if (selectedDate == null) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f) else MaterialTheme.colorScheme.onSurface
                 )

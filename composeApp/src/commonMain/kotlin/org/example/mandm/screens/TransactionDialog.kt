@@ -9,70 +9,65 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import mandm.composeapp.generated.resources.Res
-import mandm.composeapp.generated.resources.add_user_icon
-import mandm.composeapp.generated.resources.left_icon
-import mandm.composeapp.generated.resources.right_icon
-import org.example.mandm.commonBorder
-import org.example.mandm.commonComponent.RoundedSideIconButton
-import org.example.mandm.commonComponent.CommonInputBox
-import org.example.mandm.PriceMode
-import org.example.mandm.commonComponent.CustomColoredCheckbox
-import org.example.mandm.commonComponent.SelectableOptionWithCheckbox
-import org.example.mandm.commonComponent.TextInputWithTitle
-import org.example.mandm.commonComponent.ValidatedInputField
-import org.example.mandm.commonComponent.BuySellSwitch
-import org.example.mandm.dataModel.User
-import org.example.mandm.dataModel.dummyUser
-import org.example.mandm.PricingUtils
-import org.example.mandm.formatMoney
-import org.example.mandm.roundCorner
-import org.example.mandm.TransactionTypeConstants
-import org.example.mandm.commonComponent.FilledActionButton
-import org.example.mandm.commonComponent.OutlineActionButton
-import org.example.mandm.theme.AppColors
-import org.jetbrains.compose.resources.painterResource
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import org.jetbrains.compose.ui.tooling.preview.Preview
-import cafe.adriel.voyager.navigator.LocalNavigator
-import cafe.adriel.voyager.navigator.currentOrThrow
-import org.example.mandm.viewModels.DashboardViewModel
-import org.koin.compose.viewmodel.koinViewModel
-import org.example.mandm.dataModel.CustomerEntity
-import org.example.mandm.DateTimeUtil
-import org.example.mandm.commonComponent.DateInputField
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDate
 import kotlinx.datetime.toLocalDateTime
+import mandm.composeapp.generated.resources.Res
+import mandm.composeapp.generated.resources.add_user_icon
+import org.example.mandm.PriceMode
+import org.example.mandm.PricingUtils
+import org.example.mandm.TransactionTypeConstants
+import org.example.mandm.UserTypeConstants
+import org.example.mandm.commonBorder
+import org.example.mandm.commonComponent.AutoCompleteDropdown
+import org.example.mandm.commonComponent.BuySellSwitch
+import org.example.mandm.commonComponent.DateInputField
+import org.example.mandm.commonComponent.FilledActionButton
+import org.example.mandm.commonComponent.OutlineActionButton
+import org.example.mandm.commonComponent.SelectableOptionWithCheckbox
+import org.example.mandm.commonComponent.ValidatedInputField
+import org.example.mandm.commonComponent.CustomerSearchField
+import org.example.mandm.dataModel.CustomerEntity
+import org.example.mandm.dataModel.CustomerRouteEntity
+import org.example.mandm.dataModel.MilkTransactionEntity
+import org.example.mandm.formatMoney
+import org.example.mandm.roundCorner
+import org.example.mandm.theme.AppColors
+import org.example.mandm.viewModels.DashboardViewModel
+import org.example.mandm.viewModels.MilkTransactionDialogViewModel
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.koin.compose.viewmodel.koinViewModel
 
 sealed class Tabs {
     object MilkOnly : Tabs()
@@ -89,7 +84,10 @@ fun TransactionDialog(
     onNextCLick: () -> Unit = {},
     onPrevClick: () -> Unit = {},
     onSaveClick: () -> Unit = {},
-    onSkipClick: () -> Unit = {}
+    onSkipClick: () -> Unit = {},
+    routeMap: CustomerRouteEntity? = null,
+    existingMilkTx: MilkTransactionEntity? = null,
+    isEditing: Boolean = false
 
 ) {
     Dialog(
@@ -98,6 +96,9 @@ fun TransactionDialog(
         )
     ) {
         val dashboardViewModel: DashboardViewModel = koinViewModel()
+        val milkVm: MilkTransactionDialogViewModel = koinViewModel()
+        LaunchedEffect(routeMap, existingMilkTx) { milkVm.initWith(routeMap, existingMilkTx) }
+        val milkUi = milkVm.ui.collectAsState()
         var selectedTab by rememberSaveable { mutableStateOf(0) }
         Row(
             modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.1f))
@@ -149,12 +150,15 @@ fun TransactionDialog(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        ValidatedInputField(
-                            modifier = Modifier.weight(1f),
-                            hintText = "Search by Name,Id or Number",
-                            onValidationChanged = { valid, value ->
-//validations and value
-                            })
+                        Column(Modifier.weight(1f)) {
+                            CustomerSearchField(
+                                query = milkUi.value.query,
+                                results = milkUi.value.searchResults,
+                                onQueryChange = { milkVm.updateQuery(it) },
+                                onSelect = { milkVm.selectCustomer(it) },
+                                onMoveFocusNext = { /* option: move focus to price/qty */ }
+                            )
+                        }
                         Image(
                             modifier = Modifier.size(42.dp)
                                 .background(color = MaterialTheme.colorScheme.surface)
@@ -168,14 +172,18 @@ fun TransactionDialog(
                     }
                     MilkTransaction(
                         Modifier.padding(top = 8.dp),
+                        user = milkUi.value.selectedCustomer,
                         onSaveClick = onSaveClick,
-                        onSkipClick = onSkipClick
+                        onSkipClick = onSkipClick,
+                        existing = existingMilkTx,
+                        isEditing = isEditing,
+                        routeMap = routeMap
                     )
                     if (showCreateUser) {
                         CreateUserDialog(
                             onDismiss = { showCreateUser = false },
                             onSaved = {
-                                // Parent can react with created customer if needed
+                                milkVm.selectCustomer(it)
                                 showCreateUser = false
                             }
                         )
@@ -206,9 +214,13 @@ fun TabText(modifier: Modifier = Modifier, text: String = "Milk") {
 @Composable
 fun MilkTransaction(
     modifier: Modifier = Modifier,
-    user: User = dummyUser,
+    user: CustomerEntity? = null,
     onSaveClick: () -> Unit = {},
-    onSkipClick: () -> Unit = {}
+    onSkipClick: () -> Unit = {},
+    existing: MilkTransactionEntity? = null,
+    isEditing: Boolean = false,
+    routeMap: CustomerRouteEntity? = null,
+    dateOverride: LocalDate? = null
 ) {
     var priceMode by rememberSaveable { mutableStateOf(PriceMode.FixPrice) }
     var transactionType by rememberSaveable { mutableStateOf(TransactionTypeConstants.Milk.BUY) }
@@ -216,6 +228,42 @@ fun MilkTransaction(
     var quantityInput by rememberSaveable { mutableStateOf("") }
     var snfInput by rememberSaveable { mutableStateOf("") }
     var snfPriceInput by rememberSaveable { mutableStateOf("") }
+
+    // Initialize from existing data if provided
+    LaunchedEffect(existing) {
+        existing?.let { e ->
+            priceMode = if (e.fixPrice) PriceMode.FixPrice else PriceMode.SnfPrice
+            transactionType = e.transactionType
+            pricePerLiterInput = if (e.fixPrice) e.fixPriceValue.toString() else ""
+            quantityInput = e.quantity.toString()
+            snfInput = if (!e.fixPrice) e.snfValue.toString() else ""
+            snfPriceInput = if (!e.fixPrice) e.snfPrice.toString() else ""
+        }
+    }
+
+    // If no existing tx, derive BUY/SELL from selected customer; fallback to BUY
+    LaunchedEffect(user, existing) {
+        if (existing == null) {
+            val t = when (user?.customerType) {
+                UserTypeConstants.BUYER -> TransactionTypeConstants.Milk.BUY
+                UserTypeConstants.SELLER -> TransactionTypeConstants.Milk.SELL
+                else -> TransactionTypeConstants.Milk.BUY
+            }
+            transactionType = t
+        }
+    }
+
+    val today: LocalDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+    // Derive initial date from existing if possible (expects yyyy-MM-dd...)
+    val existingDate: LocalDate? = existing?.dateTimeStamp?.let { dt ->
+        runCatching { dt.substring(0, 10).toLocalDate() }.getOrNull()
+    }
+    val fromRoute: LocalDate? = routeMap?.date?.let { dt -> runCatching { dt.substring(0, 10).toLocalDate() }.getOrNull() }
+    val initialDate = dateOverride ?: fromRoute ?: existingDate
+    var txDate by remember { mutableStateOf(initialDate) }
+
+    // Selected customer comes from parent; reflect directly in UI
+    val displayUserName = existing?.userName ?: (user?.userName ?: "")
 
     val totalAmount = PricingUtils.calculateMilkTotal(
         mode = priceMode,
@@ -230,13 +278,32 @@ fun MilkTransaction(
             .border(1.dp, MaterialTheme.colorScheme.primary, roundCorner())
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                ValidatedInputField(
-                    modifier = Modifier.weight(1f),
-                    hintText = "Name",
-                    initialValue = user.name,
-                    disabled = true,
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+//                if (displayUserName.isBlank()) {
+//                    Column(Modifier.weight(1f)) {
+//                        AutoCompleteDropdown(
+//                            items = searchResults.value.searchResults,
+//                            query = searchQuery,
+//                            onQueryChange = { searchQuery = it },
+//                            itemContent = { c -> Text(c.userName) },
+//                            onItemSelected = { c ->
+//                                selectedCustomer = c
+//                                vm.selectCustomer(c)
+//                                searchQuery = c.userName
+//                            }
+//                        )
+//                    }
+//                } else {
+
+                    key(displayUserName) {
+                        ValidatedInputField(
+                            modifier = Modifier.weight(1f),
+                            hintText = "Name",
+                            initialValue = displayUserName?:"",
+                            disabled = true,
+                        )
+                    }
+//                }
                 Spacer(Modifier.width(8.dp))
                 BuySellSwitch(value = transactionType, onChange = { transactionType = it })
 
@@ -293,7 +360,8 @@ fun MilkTransaction(
                         modifier = Modifier.weight(1f).padding(start = 8.dp),
                         title = "Date",
                         hintText = "Select date",
-                        onDateChanged = { /* you can capture selected date here if needed */ }
+                        initialDate = txDate,
+                        onDateChanged = { txDate = it }
                     )
                 }
             } else {
@@ -319,7 +387,8 @@ fun MilkTransaction(
                         modifier = Modifier.weight(1f).padding(start = 8.dp),
                         title = "Date",
                         hintText = "Select date",
-                        onDateChanged = { /* capture selected date if needed */ }
+                        initialDate = txDate,
+                        onDateChanged = { txDate = it }
                     )
                 }
             }
@@ -338,10 +407,19 @@ fun MilkTransaction(
             }
 
             Spacer(Modifier.height(10.dp))
+            val hasUser = displayUserName?.isNotBlank()
+            val hasQuantity = quantityInput.isNotBlank()
+            val hasDate = txDate != null
+            val priceFieldsOk = when (priceMode) {
+                PriceMode.FixPrice -> pricePerLiterInput.isNotBlank()
+                PriceMode.SnfPrice -> snfInput.isNotBlank() && snfPriceInput.isNotBlank()
+            }
+            val canSave = hasUser?:false && hasQuantity && hasDate && priceFieldsOk
+
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 OutlineActionButton(
                     modifier = Modifier.weight(1f).heightIn(52.dp),
-                    text = "Skip",
+                    text = if (isEditing) "Cancel" else "Skip",
                     borderColor = MaterialTheme.colorScheme.error,
                 ) { onSkipClick() }
 
@@ -349,8 +427,9 @@ fun MilkTransaction(
 
                 FilledActionButton(
                     modifier = Modifier.weight(1f).heightIn(52.dp),
-                    text = "Save",
+                    text = if (isEditing) "Update" else "Save",
                     fillColor = AppColors.Green,
+                    enabled = canSave
                 ) { onSaveClick() }
             }
 

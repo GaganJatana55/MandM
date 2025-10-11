@@ -33,14 +33,16 @@ class RouteRepository(
         customerId: Long,
         routeId: Int,
         sequenceNumber: Int = RouteSequenceUtil.nextSequence(),
-        status: String = TransactionStatus.PENDING
+        status: String = TransactionStatus.PENDING,
+        date: String
     ): Long {
         return routeDao.insertCustomerRoute(
             CustomerRouteEntity(
                 customerId = customerId,
                 routeId = routeId,
                 sequenceNumber = sequenceNumber,
-                status = status
+                status = status,
+                date = date
             )
         )
     }

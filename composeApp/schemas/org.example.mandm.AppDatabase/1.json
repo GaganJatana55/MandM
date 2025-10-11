@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "7681d26412b89a47cd7c00451011c75c",
+    "identityHash": "e9354db3f3108e0d0a43167603ec4325",
     "entities": [
       {
         "tableName": "customerEntity",
@@ -125,7 +125,7 @@
       },
       {
         "tableName": "customer_route",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `customerId` INTEGER NOT NULL, `routeId` INTEGER NOT NULL, `sequenceNumber` INTEGER NOT NULL, `status` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `customerId` INTEGER NOT NULL, `routeId` INTEGER NOT NULL, `sequenceNumber` INTEGER NOT NULL, `status` TEXT NOT NULL, `date` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -154,6 +154,12 @@
           {
             "fieldPath": "status",
             "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
             "affinity": "TEXT",
             "notNull": true
           }
@@ -546,7 +552,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7681d26412b89a47cd7c00451011c75c')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e9354db3f3108e0d0a43167603ec4325')"
     ]
   }
 }

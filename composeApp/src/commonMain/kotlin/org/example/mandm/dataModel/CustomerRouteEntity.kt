@@ -10,7 +10,8 @@ data class CustomerRouteEntity(
     val customerId: Long,
     val routeId: Int,
     val sequenceNumber: Int,
-    val status: String
+    val status: String,
+    val date: String // yyyy-MM-dd
 )
 
 
