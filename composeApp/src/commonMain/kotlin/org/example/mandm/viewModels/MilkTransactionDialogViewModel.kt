@@ -13,8 +13,10 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import org.example.mandm.dataModel.CustomerEntity
 import org.example.mandm.dataModel.MilkTransactionEntity
+import org.example.mandm.dataModel.MoneyTransactionEntity
 import org.example.mandm.repo.CustomerRepository
 import org.example.mandm.repo.MilkRepository
+import org.example.mandm.repo.MoneyRepository
 import kotlinx.coroutines.flow.firstOrNull
 import org.example.mandm.dataModel.CustomerRouteEntity
 
@@ -28,7 +30,8 @@ data class MilkTxUiState(
 
 class MilkTransactionDialogViewModel(
     private val customerRepo: CustomerRepository,
-    private val milkRepo: MilkRepository
+    private val milkRepo: MilkRepository,
+    private val moneyRepo: MoneyRepository
 ) : ViewModel() {
     private val _ui = MutableStateFlow(MilkTxUiState())
     val ui: StateFlow<MilkTxUiState> = _ui.asStateFlow()
@@ -60,19 +63,24 @@ class MilkTransactionDialogViewModel(
         _ui.value = _ui.value.copy(selectedCustomer = c, query = c.userName)
     }
 
-    fun initWith(routeMap: CustomerRouteEntity?, existing: MilkTransactionEntity?) {
+    fun initWith(
+        routeMap: CustomerRouteEntity?,
+        existingMilk: MilkTransactionEntity?,
+        existingMoney: MoneyTransactionEntity?,
+        initialCustomer: CustomerEntity?
+    ) {
         viewModelScope.launch {
-            val idFromRoute = routeMap?.customerId
-            val idFromTx = existing?.userId
-            val id = idFromRoute ?: idFromTx
-            if (id != null) {
-                val customer = customerRepo.getCustomerById(id).firstOrNull()
-                if (customer != null) {
-                    _ui.value = _ui.value.copy(selectedCustomer = customer, query = customer.userName)
-                }
+            val resolvedCustomer: CustomerEntity? = when {
+                initialCustomer != null -> initialCustomer
+                existingMilk?.userId != null -> customerRepo.getCustomerById(existingMilk.userId).firstOrNull()
+                existingMoney?.userId != null -> customerRepo.getCustomerById(existingMoney.userId).firstOrNull()
+                routeMap?.customerId != null -> customerRepo.getCustomerById(routeMap.customerId).firstOrNull()
+                else -> null
+            }
+            _ui.value = if (resolvedCustomer != null) {
+                _ui.value.copy(selectedCustomer = resolvedCustomer, query = resolvedCustomer.userName)
             } else {
-                // New dialog without defaults: clear previous selection and query
-                _ui.value = _ui.value.copy(selectedCustomer = null, query = "")
+                _ui.value.copy(selectedCustomer = null, query = "")
             }
         }
     }
@@ -88,6 +96,24 @@ class MilkTransactionDialogViewModel(
                 milkRepo.insertMilkTransaction(draft)
             } else {
                 milkRepo.saveMilkTransaction(draft, timestamp)
+            }
+            _ui.value = _ui.value.copy(isLoading = false)
+        } catch (t: Throwable) {
+            _ui.value = _ui.value.copy(isLoading = false, errorMessage = t.message)
+        }
+    }
+
+    suspend fun saveOrUpdateMoney(
+        isEditing: Boolean,
+        draft: MoneyTransactionEntity,
+        timestamp: String
+    ) {
+        _ui.value = _ui.value.copy(isLoading = true, errorMessage = null)
+        try {
+            if (!isEditing) {
+                moneyRepo.insertMoneyTransaction(draft)
+            } else {
+                moneyRepo.saveMoneyTransaction(draft, timestamp)
             }
             _ui.value = _ui.value.copy(isLoading = false)
         } catch (t: Throwable) {

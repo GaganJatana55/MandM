@@ -44,6 +44,7 @@ import kotlinx.datetime.toLocalDate
 import kotlinx.datetime.toLocalDateTime
 import mandm.composeapp.generated.resources.Res
 import mandm.composeapp.generated.resources.add_user_icon
+import org.example.mandm.DateTimeUtil
 import org.example.mandm.PriceMode
 import org.example.mandm.PricingUtils
 import org.example.mandm.TransactionTypeConstants
@@ -64,6 +65,9 @@ import org.example.mandm.dataModel.MoneyTransactionEntity
 import org.example.mandm.formatMoney
 import org.example.mandm.roundCorner
 import org.example.mandm.theme.AppColors
+import org.koin.compose.koinInject
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import org.example.mandm.viewModels.DashboardViewModel
 import org.example.mandm.viewModels.MilkTransactionDialogViewModel
 import org.jetbrains.compose.resources.painterResource
@@ -85,11 +89,13 @@ fun TransactionDialog(
     onNextCLick: () -> Unit = {},
     onPrevClick: () -> Unit = {},
     onSaveClick: () -> Unit = {},
+    onSavedDetail: (CustomerRouteEntity?, MilkTransactionEntity?, MoneyTransactionEntity?) -> Unit = { _, _, _ -> },
     onSkipClick: () -> Unit = {},
     routeMap: CustomerRouteEntity? = null,
     existingMilkTx: MilkTransactionEntity? = null,
     existingMoneyTx: MoneyTransactionEntity? = null,
-    isEditing: Boolean = false
+    isEditing: Boolean = false,
+    initialCustomer: CustomerEntity? = null
 
 ) {
     Dialog(
@@ -99,7 +105,10 @@ fun TransactionDialog(
     ) {
         val dashboardViewModel: DashboardViewModel = koinViewModel()
         val milkVm: MilkTransactionDialogViewModel = koinViewModel()
-        LaunchedEffect(routeMap, existingMilkTx) { milkVm.initWith(routeMap, existingMilkTx) }
+        val scope = rememberCoroutineScope()
+        LaunchedEffect(routeMap, existingMilkTx, existingMoneyTx, initialCustomer) {
+            milkVm.initWith(routeMap, existingMilkTx, existingMoneyTx, initialCustomer)
+        }
         val milkUi = milkVm.ui.collectAsState()
         var selectedTab by rememberSaveable { mutableStateOf(0) }
         Row(
@@ -176,7 +185,13 @@ fun TransactionDialog(
                         0 -> MilkTransaction(
                             Modifier.padding(top = 8.dp),
                             user = milkUi.value.selectedCustomer,
-                            onSaveClick = onSaveClick,
+                            onSubmit = { draft ->
+                                scope.launch {
+                                    milkVm.saveOrUpdate(isEditing, draft, DateTimeUtil.currentUtcDateString())
+                                    onSavedDetail(routeMap, existingMilkTx, null)
+                                    if (!inRoute) onDismiss() else onSaveClick()
+                                }
+                            },
                             onSkipClick = onSkipClick,
                             existing = existingMilkTx,
                             isEditing = isEditing,
@@ -185,7 +200,13 @@ fun TransactionDialog(
                         else -> MoneyTransaction(
                             Modifier.padding(top = 8.dp),
                             user = milkUi.value.selectedCustomer,
-                            onSaveClick = onSaveClick,
+                            onSubmit = { draft ->
+                                scope.launch {
+                                    milkVm.saveOrUpdateMoney(isEditing, draft, DateTimeUtil.currentUtcDateString())
+                                    onSavedDetail(routeMap, existingMilkTx, existingMoneyTx)
+                                    if (!inRoute) onDismiss() else onSaveClick()
+                                }
+                            },
                             onSkipClick = onSkipClick,
                             existing = existingMoneyTx,
                             isEditing = isEditing
@@ -227,7 +248,7 @@ fun TabText(modifier: Modifier = Modifier, text: String = "Milk") {
 fun MilkTransaction(
     modifier: Modifier = Modifier,
     user: CustomerEntity? = null,
-    onSaveClick: () -> Unit = {},
+    onSubmit: (MilkTransactionEntity) -> Unit = {},
     onSkipClick: () -> Unit = {},
     existing: MilkTransactionEntity? = null,
     isEditing: Boolean = false,
@@ -442,7 +463,24 @@ fun MilkTransaction(
                     text = if (isEditing) "Update" else "Save",
                     fillColor = AppColors.Green,
                     enabled = canSave
-                ) { onSaveClick() }
+                ) {
+                    val userId = user?.userId ?: existing?.userId ?: 0L
+                    val entity = MilkTransactionEntity(
+                        id = existing?.id ?: 0L,
+                        userId = userId,
+                        userName = displayUserName,
+                        dateTimeStamp = (txDate ?: Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date).toString(),
+                        editedOn = null,
+                        quantity = quantityInput.toDoubleOrNull() ?: 0.0,
+                        transactionType = transactionType,
+                        fixPrice = priceMode == PriceMode.FixPrice,
+                        snfValue = snfInput.toDoubleOrNull() ?: 0.0,
+                        snfPrice = snfPriceInput.toDoubleOrNull() ?: 0.0,
+                        fixPriceValue = pricePerLiterInput.toDoubleOrNull() ?: 0.0,
+                        total = totalAmount
+                    )
+                    onSubmit(entity)
+                }
             }
 
         }
@@ -455,7 +493,7 @@ fun MilkTransaction(
 fun MoneyTransaction(
     modifier: Modifier = Modifier,
     user: CustomerEntity? = null,
-    onSaveClick: () -> Unit = {},
+    onSubmit: (MoneyTransactionEntity) -> Unit = {},
     onSkipClick: () -> Unit = {},
     existing: MoneyTransactionEntity? = null,
     isEditing: Boolean = false
@@ -559,7 +597,20 @@ fun MoneyTransaction(
                     text = if (isEditing) "Update" else "Save",
                     fillColor = AppColors.Green,
                     enabled = canSave
-                ) { onSaveClick() }
+                ) {
+                    val userId = user?.userId ?: existing?.userId ?: 0L
+                    val entity = MoneyTransactionEntity(
+                        id = existing?.id ?: 0L,
+                        userId = userId,
+                        userName = displayUserName,
+                        dateTimeStamp = (moneyDate ?: Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date).toString(),
+                        editedOn = null,
+                        amount = amountInput.toDoubleOrNull() ?: 0.0,
+                        transactionType = transactionType,
+                        note = if (noteInput.isBlank()) null else noteInput
+                    )
+                    onSubmit(entity)
+                }
             }
         }
     }
