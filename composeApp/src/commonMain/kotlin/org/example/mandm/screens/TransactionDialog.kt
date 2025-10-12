@@ -60,6 +60,7 @@ import org.example.mandm.commonComponent.CustomerSearchField
 import org.example.mandm.dataModel.CustomerEntity
 import org.example.mandm.dataModel.CustomerRouteEntity
 import org.example.mandm.dataModel.MilkTransactionEntity
+import org.example.mandm.dataModel.MoneyTransactionEntity
 import org.example.mandm.formatMoney
 import org.example.mandm.roundCorner
 import org.example.mandm.theme.AppColors
@@ -87,6 +88,7 @@ fun TransactionDialog(
     onSkipClick: () -> Unit = {},
     routeMap: CustomerRouteEntity? = null,
     existingMilkTx: MilkTransactionEntity? = null,
+    existingMoneyTx: MoneyTransactionEntity? = null,
     isEditing: Boolean = false
 
 ) {
@@ -170,15 +172,25 @@ fun TransactionDialog(
                         )
 
                     }
-                    MilkTransaction(
-                        Modifier.padding(top = 8.dp),
-                        user = milkUi.value.selectedCustomer,
-                        onSaveClick = onSaveClick,
-                        onSkipClick = onSkipClick,
-                        existing = existingMilkTx,
-                        isEditing = isEditing,
-                        routeMap = routeMap
-                    )
+                    when (selectedTab) {
+                        0 -> MilkTransaction(
+                            Modifier.padding(top = 8.dp),
+                            user = milkUi.value.selectedCustomer,
+                            onSaveClick = onSaveClick,
+                            onSkipClick = onSkipClick,
+                            existing = existingMilkTx,
+                            isEditing = isEditing,
+                            routeMap = routeMap
+                        )
+                        else -> MoneyTransaction(
+                            Modifier.padding(top = 8.dp),
+                            user = milkUi.value.selectedCustomer,
+                            onSaveClick = onSaveClick,
+                            onSkipClick = onSkipClick,
+                            existing = existingMoneyTx,
+                            isEditing = isEditing
+                        )
+                    }
                     if (showCreateUser) {
                         CreateUserDialog(
                             onDismiss = { showCreateUser = false },
@@ -436,4 +448,119 @@ fun MilkTransaction(
         }
     }
 
+}
+
+@Preview
+@Composable
+fun MoneyTransaction(
+    modifier: Modifier = Modifier,
+    user: CustomerEntity? = null,
+    onSaveClick: () -> Unit = {},
+    onSkipClick: () -> Unit = {},
+    existing: MoneyTransactionEntity? = null,
+    isEditing: Boolean = false
+) {
+    var transactionType by rememberSaveable { mutableStateOf(TransactionTypeConstants.Money.RECEIVED) }
+    var amountInput by rememberSaveable { mutableStateOf("") }
+    var noteInput by rememberSaveable { mutableStateOf("") }
+
+    LaunchedEffect(existing) {
+        existing?.let { e ->
+            transactionType = e.transactionType
+            amountInput = e.amount.toString()
+            noteInput = e.note ?: ""
+        }
+    }
+
+    val displayUserName = existing?.userName ?: (user?.userName ?: "")
+
+    // Handle date similar to Milk form
+    val existingMoneyDate: LocalDate? = existing?.dateTimeStamp?.let { dt ->
+        runCatching { dt.substring(0, 10).toLocalDate() }.getOrNull()
+    }
+    var moneyDate by remember { mutableStateOf(existingMoneyDate) }
+
+    Surface(
+        modifier = modifier.padding(top = 6.dp, bottom = 8.dp).padding(horizontal = 8.dp)
+            .border(1.dp, MaterialTheme.colorScheme.primary, roundCorner())
+    ) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            // Name in its own row; key to refresh when user changes
+            key(displayUserName) {
+                ValidatedInputField(
+                    modifier = Modifier.fillMaxWidth(),
+                    hintText = "Name",
+                    initialValue = displayUserName,
+                    disabled = true,
+                )
+            }
+            Spacer(Modifier.height(10.dp))
+            // Paid / Received toggle with same height as Fix Price / By SNF
+            Row(modifier = Modifier.height(54.dp).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                SelectableOptionWithCheckbox(
+                    modifier=Modifier.fillMaxWidth(0.5f),
+                    title = "Paid",
+                    selected = transactionType == TransactionTypeConstants.Money.PAID,
+                    checked = transactionType == TransactionTypeConstants.Money.PAID,
+                    onClick = { transactionType = TransactionTypeConstants.Money.PAID },
+                    onCheckedChange = { transactionType = TransactionTypeConstants.Money.PAID }
+                )
+                Spacer(Modifier.width(10.dp))
+                SelectableOptionWithCheckbox(
+                    modifier=Modifier.fillMaxWidth(5f),
+                    title = "Received",
+                    selected = transactionType == TransactionTypeConstants.Money.RECEIVED,
+                    checked = transactionType == TransactionTypeConstants.Money.RECEIVED,
+                    onClick = { transactionType = TransactionTypeConstants.Money.RECEIVED },
+                    onCheckedChange = { transactionType = TransactionTypeConstants.Money.RECEIVED }
+                )
+            }
+            Spacer(Modifier.height(10.dp))
+            // Amount and Date side by side
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                ValidatedInputField(
+                    Modifier.weight(1f),
+                    title = "Amount",
+                    initialValue = amountInput,
+                    keyboardType = KeyboardType.Decimal,
+                    onValidationChanged = { _, v -> amountInput = v }
+                )
+                DateInputField(
+                    modifier = Modifier.weight(1f).padding(start = 8.dp),
+                    title = "Date",
+                    hintText = "Select date",
+                    initialDate = moneyDate,
+                    onDateChanged = { moneyDate = it }
+                )
+            }
+            // Note
+            ValidatedInputField(
+                Modifier.fillMaxWidth(),
+                title = "Note",
+                initialValue = noteInput,
+                onValidationChanged = { _, v -> noteInput = v }
+            )
+
+            Spacer(Modifier.height(10.dp))
+            val hasUser = displayUserName.isNotBlank()
+            val hasAmount = amountInput.isNotBlank()
+            val canSave = hasUser && hasAmount
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                OutlineActionButton(
+                    modifier = Modifier.weight(1f).heightIn(52.dp),
+                    text = "Cancel",
+                    borderColor = MaterialTheme.colorScheme.error,
+                ) { onSkipClick() }
+
+                Spacer(Modifier.width(10.dp))
+
+                FilledActionButton(
+                    modifier = Modifier.weight(1f).heightIn(52.dp),
+                    text = if (isEditing) "Update" else "Save",
+                    fillColor = AppColors.Green,
+                    enabled = canSave
+                ) { onSaveClick() }
+            }
+        }
+    }
 }

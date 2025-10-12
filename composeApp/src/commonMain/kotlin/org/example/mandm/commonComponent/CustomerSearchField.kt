@@ -37,7 +37,7 @@ fun CustomerSearchField(
 ) {
     var hasFocus by remember { mutableStateOf(false) }
     val focusManager: FocusManager = LocalFocusManager.current
-
+var queryValue by remember { mutableStateOf("") }
     val density = LocalDensity.current
     var anchorWidth by remember { mutableStateOf(0f) }
 
@@ -46,20 +46,26 @@ fun CustomerSearchField(
             ValidatedInputField(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .onFocusChanged { hasFocus = it.isFocused }
+                    .onFocusChanged { state ->
+                        onQueryChange(queryValue)
+                        hasFocus = state.isFocused }
                     .onGloballyPositioned { coords ->
                         anchorWidth = coords.boundsInWindow().width
                     },
                 hintText = "Search by Name,Id or Number",
                 initialValue = query,
-                onValidationChanged = { _, v -> onQueryChange(v) }
+                onValidationChanged = { _, v ->
+                    onQueryChange(v)
+                    hasFocus=true
+                    queryValue = v
+                }
             )
         }
 
         val desiredWidthDp = with(density) { (anchorWidth).toDp() - 16.dp }
         DropdownMenu(
             expanded = hasFocus,
-            onDismissRequest = { /* keep open while focused */ },
+            onDismissRequest = { hasFocus = false },
             modifier = Modifier.width(desiredWidthDp.coerceAtLeast(220.dp)),
             offset = DpOffset(0.dp, 4.dp),
             properties = PopupProperties(focusable = false)
