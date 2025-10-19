@@ -26,26 +26,26 @@ class RouteRepository(
         routeDao.deleteCustomerFromRoute(customerId, routeId)
     suspend fun updateCustomerRouteStatus(id: Long, status: String): Int = routeDao.updateCustomerRouteStatus(id, status)
     suspend fun updateCustomerRouteSequence(id: Long, sequenceNumber: Int): Int = routeDao.updateCustomerRouteSequence(id, sequenceNumber)
-    fun getCustomersForRoute(routeId: Int): Flow<List<CustomerEntity>> = routeDao.getCustomersForRoute(routeId)
+//    fun getCustomersForRoute(routeId: Int): Flow<List<CustomerEntity>> = routeDao.getCustomersForRoute(routeId)
 
     // Helper to add a customer to a route with sensible defaults
-    suspend fun addCustomerToRoute(
-        customerId: Long,
-        routeId: Int,
-        sequenceNumber: Int = RouteSequenceUtil.nextSequence(),
-        status: String = TransactionStatus.PENDING,
-        date: String
-    ): Long {
-        return routeDao.insertCustomerRoute(
-            CustomerRouteEntity(
-                customerId = customerId,
-                routeId = routeId,
-                sequenceNumber = sequenceNumber,
-                status = status,
-                date = date
-            )
-        )
-    }
+//    suspend fun addCustomerToRoute(
+//        customerId: Long,
+//        routeId: Int,
+//        sequenceNumber: Int = RouteSequenceUtil.nextSequence(),
+//        status: String = TransactionStatus.PENDING,
+//        date: String
+//    ): Long {
+//        return routeDao.insertCustomerRoute(
+//            CustomerRouteEntity(
+//                customerId = customerId,
+//                routeId = routeId,
+//                sequenceNumber = sequenceNumber,
+//                status = status,
+//                date = date
+//            )
+//        )
+//    }
 }
 
 

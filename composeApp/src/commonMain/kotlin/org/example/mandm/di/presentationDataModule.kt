@@ -4,6 +4,7 @@ import org.example.mandm.viewModels.UserViewModel
 import org.example.mandm.viewModels.CustomerViewModel
 import org.example.mandm.viewModels.CreateCustomerViewModel
 import org.example.mandm.viewModels.MilkTransactionDialogViewModel
+import org.example.mandm.viewModels.BillingViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
@@ -14,4 +15,5 @@ val presentationDataModule = module{
     viewModelOf(::CustomerViewModel)
     viewModelOf(::CreateCustomerViewModel)
     viewModelOf(::MilkTransactionDialogViewModel)
+    viewModelOf(::BillingViewModel)
 }

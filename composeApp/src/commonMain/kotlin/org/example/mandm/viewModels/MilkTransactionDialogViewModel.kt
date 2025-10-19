@@ -19,6 +19,7 @@ import org.example.mandm.repo.MilkRepository
 import org.example.mandm.repo.MoneyRepository
 import kotlinx.coroutines.flow.firstOrNull
 import org.example.mandm.dataModel.CustomerRouteEntity
+import org.example.mandm.dataModel.CustomerRouteItem
 
 data class MilkTxUiState(
     val query: String = "",
@@ -64,7 +65,7 @@ class MilkTransactionDialogViewModel(
     }
 
     fun initWith(
-        routeMap: CustomerRouteEntity?,
+        routeMap: CustomerRouteItem?,
         existingMilk: MilkTransactionEntity?,
         existingMoney: MoneyTransactionEntity?,
         initialCustomer: CustomerEntity?

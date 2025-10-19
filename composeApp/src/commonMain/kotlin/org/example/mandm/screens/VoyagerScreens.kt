@@ -23,9 +23,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.unit.dp
-import cafe.adriel.voyager.core.screen.Screen
+
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import cafe.adriel.voyager.core.screen.Screen
 import mandm.composeapp.generated.resources.Res
 import mandm.composeapp.generated.resources.add_icon
 import org.example.mandm.roundCorner
@@ -143,6 +144,16 @@ class MainTabsScreen : Screen {
                 }
             }
         }
+    }
+}
+
+data class UserBillingScreen(
+    private val userId: Long,
+    private val userName: String,
+) : Screen {
+    @Composable
+    override fun Content() {
+        BillListScreen(userId = userId, userName = userName)
     }
 }
 

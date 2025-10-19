@@ -44,34 +44,34 @@ interface RouteDao {
     @Query("DELETE FROM customer_route WHERE customerId = :customerId AND routeId = :routeId")
     suspend fun deleteCustomerFromRoute(customerId: Long, routeId: Int): Int
 
-    @Query("UPDATE customer_route SET status = :status WHERE id = :id")
+    @Query("UPDATE RouteMilkEntity SET status = :status WHERE id = :id")
     suspend fun updateCustomerRouteStatus(id: Long, status: String): Int
 
     @Query("UPDATE customer_route SET sequenceNumber = :sequenceNumber WHERE id = :id")
     suspend fun updateCustomerRouteSequence(id: Long, sequenceNumber: Int): Int
 
     // Join: customers in a route ordered by status priority and sequenceNumber
-    @Query(
-        """
-        SELECT c.* FROM customer_route cr
-        INNER JOIN customerEntity c ON c.userId = cr.customerId
-        WHERE cr.routeId = :routeId
-        ORDER BY 
-          CASE cr.status 
-            WHEN :pending THEN 1 
-            WHEN :skipped THEN 2 
-            WHEN :done THEN 3 
-            ELSE 4 
-          END,
-          cr.sequenceNumber ASC
-        """
-    )
-    fun getCustomersForRoute(
-        routeId: Int,
-        pending: String = TransactionStatus.PENDING,
-        skipped: String = TransactionStatus.SKIPPED,
-        done: String = TransactionStatus.ADDED
-    ): Flow<List<CustomerEntity>>
+//    @Query(
+//        """
+//        SELECT c.* FROM RouteMilkEntity cr
+//        INNER JOIN customerEntity c ON c.userId = cr.customerId
+//        WHERE cr.routeId = :routeId
+//        ORDER BY
+//          CASE cr.status
+//            WHEN :pending THEN 1
+//            WHEN :skipped THEN 2
+//            WHEN :done THEN 3
+//            ELSE 4
+//          END,
+//          cr.sequenceNumber ASC
+//        """
+//    )
+//    fun getCustomersForRoute(
+//        routeId: Int,
+//        pending: String = TransactionStatus.PENDING,
+//        skipped: String = TransactionStatus.SKIPPED,
+//        done: String = TransactionStatus.ADDED
+//    ): Flow<List<CustomerEntity>>
 }
 
 

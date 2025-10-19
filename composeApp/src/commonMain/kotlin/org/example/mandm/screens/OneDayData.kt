@@ -1,8 +1,6 @@
 package org.example.mandm.screens
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,7 +11,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -43,12 +40,11 @@ import org.example.mandm.TransactionTypeConstants
 import org.example.mandm.backgroundCommonCard
 import org.example.mandm.commonComponent.ButtonRoundCorner
 import org.example.mandm.commonComponent.GetCommonScaffoldForTabs
-import org.example.mandm.dataModel.MilkTrans
-import org.example.mandm.dataModel.sampleTransactions
+import org.example.mandm.dataModel.MilkTransactionEntity
 import org.example.mandm.dataModel.sortTransactionsByStatus
 import org.example.mandm.formatMoney
-import org.example.mandm.getBorderWithColor
 import org.example.mandm.getStatusBorderColor
+import org.example.mandm.repo.sampleCustomerRouteItems
 import org.example.mandm.theme.AppColors
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -76,9 +72,12 @@ fun DailyRouteData(modifier: Modifier = Modifier) {
         LazyColumn(Modifier.scrollable(scrollState, orientation = Orientation.Vertical)) {
 
             items(
-                sortTransactionsByStatus(sampleTransactions)
+                sortTransactionsByStatus(sampleCustomerRouteItems)
             ) {
-                DailyItem(transaction = it)
+                DailyItem(
+                    status = it.routeMilkItem.Status,
+                    transaction = it.routeMilkItem.milkTransactionEntity
+                )
             }
 
         }
@@ -91,22 +90,15 @@ fun DailyRouteData(modifier: Modifier = Modifier) {
 @Preview
 @Composable
 fun DailyItem(
-    modifier: Modifier = Modifier, transaction: MilkTrans = MilkTrans(
-        type = TransactionTypeConstants.Milk.BUY,
-        userId = 1,
-        userName = "Ramesh",
-        fixPrice = true,
-        quantity = 5.0,
-        SNF = -1.0,
-        date = "2025-08-01",
-        time = 1722477600000, // e.g., "2025-08-01 06:00 AM UTC"
-    )
+    modifier: Modifier = Modifier,
+    status: String,
+    transaction: MilkTransactionEntity?
 ) {
-    val statusPending = transaction.status == TransactionStatus.PENDING
+    val statusPending = status == TransactionStatus.PENDING
     Column(modifier.padding(horizontal = 8.dp).padding(top = 8.dp)) {
         Column(
             modifier = Modifier.fillMaxWidth().backgroundCommonCard()
-                .getStatusBorderColor(transaction.status)
+                .getStatusBorderColor(status)
                 .padding(horizontal = 10.dp, vertical = 6.dp)
         ) {
             Row(
@@ -115,20 +107,20 @@ fun DailyItem(
             ) {
                 Text(
 
-                    text = transaction.userName,
+                    text = transaction?.userName?:"",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold
                 )
 
                 Text(
 
-                    text = if (transaction.type == TransactionTypeConstants.Milk.BUY) {
+                    text = if (transaction?.transactionType == TransactionTypeConstants.Milk.BUY) {
                         "BUY"
                     } else {
                         "SELL"
                     },
                     style = MaterialTheme.typography.bodyMedium,
-                    color = if (transaction.type == TransactionTypeConstants.Milk.BUY) Color.Red else Color.Green,
+                    color = if (transaction?.transactionType == TransactionTypeConstants.Milk.BUY) Color.Red else Color.Green,
                     fontWeight = FontWeight.SemiBold
                 )
             }
@@ -138,20 +130,20 @@ fun DailyItem(
             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
                 Column {
 
-                    if (transaction.status != TransactionStatus.ADDED) {
+                    if (status != TransactionStatus.ADDED) {
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                text = if (transaction.status == TransactionStatus.SKIPPED) "Skipped for Today" else "Pending",
-                                color = if (transaction.status == TransactionStatus.SKIPPED) AppColors.Red else AppColors.Orange,
+                                text = if (status == TransactionStatus.SKIPPED) "Skipped for Today" else "Pending",
+                                color = if (status == TransactionStatus.SKIPPED) AppColors.Red else AppColors.Orange,
                                 style = MaterialTheme.typography.labelMedium
                             )
 
                         }
                     }
-                    if (transaction.status != TransactionStatus.SKIPPED) {
+                    if (status != TransactionStatus.SKIPPED) {
                         Row(
                             modifier.fillMaxWidth().backgroundCommonCard()
                                 .padding(vertical = 6.dp),
@@ -159,18 +151,18 @@ fun DailyItem(
                         ) {
                             TextWithUnit(
                                 Modifier.padding(end = 10.dp).widthIn(50.dp),
-                                value = transaction.quantity.toString(),
+                                value = (transaction?.quantity?:"").toString(),
                                 unitString = "Ltr.",
                                 alphaEnabled = statusPending
                             )
                             TextWithUnit(
                                 Modifier.padding(end = 10.dp).widthIn(70.dp),
-                                value = if (transaction.fixPrice) {
-                                    transaction.price.toString()
+                                value = if (transaction?.fixPrice?:true) {
+                                    (transaction?.fixPriceValue?:"").toString()
                                 } else {
-                                    transaction.SNFPrice.toString()
+                                    (transaction.snfPrice).toString()
                                 },
-                                unitString = if (transaction.fixPrice) {
+                                unitString = if (transaction?.fixPrice?:true) {
                                     "Per/Ltr"
                                 } else {
                                     "SNF Price"
@@ -179,12 +171,12 @@ fun DailyItem(
                             )
                             TextWithUnit(
                                 Modifier.padding(end = 10.dp).widthIn(70.dp),
-                                value = if (transaction.fixPrice) {
+                                value = if (transaction?.fixPrice?:true) {
                                     "--.--"
                                 } else {
-                                    transaction.SNF.toString()
+                                    transaction.snfValue.toString()
                                 },
-                                unitString = if (transaction.fixPrice) {
+                                unitString = if (transaction?.fixPrice?:true) {
                                     "Per Ltr."
                                 } else {
                                     "SNF"
@@ -194,17 +186,17 @@ fun DailyItem(
 
                             TextWithUnit(
                                 Modifier.padding(end = 10.dp).widthIn(80.dp),
-                                value = if (transaction.fixPrice) {
-                                    (transaction.quantity * transaction.price).formatMoney()
+                                value = if (transaction?.fixPrice?:true) {
+                                    ((transaction?.quantity?:0.0) * (transaction?.fixPriceValue?:0.0)).formatMoney()
                                 } else {
-                                    (transaction.SNF * transaction.SNFPrice * transaction.quantity).formatMoney()
+                                    (transaction.snfValue * transaction.snfPrice * transaction.quantity).formatMoney()
                                 },
                                 unitString = "",
                                 alphaEnabled = statusPending
                             )
 
                         }
-                    }else{
+                    } else {
                         Spacer(Modifier.padding(6.dp))
                     }
                 }

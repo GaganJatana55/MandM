@@ -29,13 +29,13 @@ class DashboardViewModel(
     fun loadCustomersForRoute(routeId: Int) {
         _uiState.value = _uiState.value.copy(isLoading = true, message = null)
         viewModelScope.launch {
-            routeRepo.getCustomersForRoute(routeId)
-                .catch { t ->
-                    _uiState.value = _uiState.value.copy(isLoading = false, message = t.message ?: "Failed to load customers")
-                }
-                .collectLatest { customers ->
-                    _uiState.value = _uiState.value.copy(customers = customers, isLoading = false, message = null)
-                }
+//            routeRepo.getCustomersForRoute(routeId)
+//                .catch { t ->
+//                    _uiState.value = _uiState.value.copy(isLoading = false, message = t.message ?: "Failed to load customers")
+//                }
+//                .collectLatest { customers ->
+//                    _uiState.value = _uiState.value.copy(customers = customers, isLoading = false, message = null)
+//                }
         }
     }
 

@@ -18,7 +18,8 @@ data class MilkTransactionEntity(
     val snfPrice: Double,
     val fixPriceValue: Double,
     val PreFilledData: Boolean=false,
-    val total: Double
+    val total: Double,
+
 )
 
 

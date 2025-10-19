@@ -10,6 +10,8 @@ import org.example.mandm.repo.CustomerRepository
 import org.example.mandm.repo.MilkRepository
 import org.example.mandm.repo.MoneyRepository
 import org.example.mandm.repo.RouteRepository
+import org.example.mandm.repo.BillRepository
+import org.example.mandm.dao.BillDao
 import org.koin.dsl.module
 
 val dataModule = module {
@@ -18,11 +20,13 @@ val dataModule = module {
     single<MilkDao> { get<AppDatabase>().milkDao() }
     single<MoneyDao> { get<AppDatabase>().moneyDao() }
     single { get<AppDatabase>().userDao() }
+    single<BillDao> { get<AppDatabase>().billDao() }
 
     single { CustomerRepository(get()) }
     single { RouteRepository(get()) }
     single { MilkRepository(get()) }
     single { MoneyRepository(get()) }
+    single { BillRepository(get(), get(), get()) }
 
 
 }

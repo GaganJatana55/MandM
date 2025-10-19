@@ -45,11 +45,11 @@ val sampleTransactions = listOf(
     MilkTrans(userId = 14,userName = "Gopal",  type = TransactionTypeConstants.Milk.SELL, quantity = 3.2,   price = 56.0, status = randomStatus()),
     MilkTrans(userId = 15,userName = "Ritu",   type = TransactionTypeConstants.Milk.SELL, quantity = 6.85,  price = 61.0, status = randomStatus())
 )
-fun sortTransactionsByStatus(transactions: List<MilkTrans>): List<MilkTrans> {
+fun sortTransactionsByStatus(transactions: List<CustomerRouteItem>): List<CustomerRouteItem> {
     val priority = mapOf(
         TransactionStatus.ADDED to 0,
         TransactionStatus.SKIPPED to 1,
         TransactionStatus.PENDING to 2
     )
-    return transactions.sortedBy { priority[it.status] ?: Int.MAX_VALUE }
+    return transactions.sortedBy { priority[it.routeMilkItem.Status] ?: Int.MAX_VALUE }
 }

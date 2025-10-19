@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -37,6 +38,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -50,24 +52,20 @@ import org.example.mandm.PricingUtils
 import org.example.mandm.TransactionTypeConstants
 import org.example.mandm.UserTypeConstants
 import org.example.mandm.commonBorder
-import org.example.mandm.commonComponent.AutoCompleteDropdown
 import org.example.mandm.commonComponent.BuySellSwitch
+import org.example.mandm.commonComponent.CustomerSearchField
 import org.example.mandm.commonComponent.DateInputField
 import org.example.mandm.commonComponent.FilledActionButton
 import org.example.mandm.commonComponent.OutlineActionButton
 import org.example.mandm.commonComponent.SelectableOptionWithCheckbox
 import org.example.mandm.commonComponent.ValidatedInputField
-import org.example.mandm.commonComponent.CustomerSearchField
 import org.example.mandm.dataModel.CustomerEntity
-import org.example.mandm.dataModel.CustomerRouteEntity
+import org.example.mandm.dataModel.CustomerRouteItem
 import org.example.mandm.dataModel.MilkTransactionEntity
 import org.example.mandm.dataModel.MoneyTransactionEntity
 import org.example.mandm.formatMoney
 import org.example.mandm.roundCorner
 import org.example.mandm.theme.AppColors
-import org.koin.compose.koinInject
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
 import org.example.mandm.viewModels.DashboardViewModel
 import org.example.mandm.viewModels.MilkTransactionDialogViewModel
 import org.jetbrains.compose.resources.painterResource
@@ -89,9 +87,9 @@ fun TransactionDialog(
     onNextCLick: () -> Unit = {},
     onPrevClick: () -> Unit = {},
     onSaveClick: () -> Unit = {},
-    onSavedDetail: (CustomerRouteEntity?, MilkTransactionEntity?, MoneyTransactionEntity?) -> Unit = { _, _, _ -> },
+    onSavedDetail: (CustomerRouteItem?, MilkTransactionEntity?, MoneyTransactionEntity?) -> Unit = { _, _, _ -> },
     onSkipClick: () -> Unit = {},
-    routeMap: CustomerRouteEntity? = null,
+    routeMap: CustomerRouteItem? = null,
     existingMilkTx: MilkTransactionEntity? = null,
     existingMoneyTx: MoneyTransactionEntity? = null,
     isEditing: Boolean = false,
@@ -252,7 +250,7 @@ fun MilkTransaction(
     onSkipClick: () -> Unit = {},
     existing: MilkTransactionEntity? = null,
     isEditing: Boolean = false,
-    routeMap: CustomerRouteEntity? = null,
+    routeMap: CustomerRouteItem? = null,
     dateOverride: LocalDate? = null
 ) {
     var priceMode by rememberSaveable { mutableStateOf(PriceMode.FixPrice) }
@@ -291,7 +289,7 @@ fun MilkTransaction(
     val existingDate: LocalDate? = existing?.dateTimeStamp?.let { dt ->
         runCatching { dt.substring(0, 10).toLocalDate() }.getOrNull()
     }
-    val fromRoute: LocalDate? = routeMap?.date?.let { dt -> runCatching { dt.substring(0, 10).toLocalDate() }.getOrNull() }
+    val fromRoute: LocalDate? = routeMap?.routeMilkItem?.Date.let { dt -> runCatching { (dt?:"").substring(0, 10).toLocalDate() }.getOrNull() }
     val initialDate = dateOverride ?: fromRoute ?: existingDate
     var txDate by remember { mutableStateOf(initialDate) }
 

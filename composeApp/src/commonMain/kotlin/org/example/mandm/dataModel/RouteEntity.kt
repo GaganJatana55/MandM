@@ -10,5 +10,6 @@ data class RouteEntity(
     val routeName: String,          // Name of the route
     val routeStartTime: String,     // e.g. "06:00 AM"
     val routeEndTime: String,       // e.g. "09:00 AM"
-    val active: Boolean = true      // Whether the route is currently active
+    val active: Boolean = true  ,    // Whether the route is currently active
+    val autoStart:Boolean=false
 )

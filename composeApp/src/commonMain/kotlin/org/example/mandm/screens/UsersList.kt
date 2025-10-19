@@ -1,6 +1,7 @@
 package org.example.mandm.screens
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,6 +34,8 @@ import org.example.mandm.commonComponent.CommonSurfaceCard
 import org.example.mandm.commonComponent.GetCommonScaffoldWithColumnCenter
 import org.example.mandm.dataModel.CustomerEntity
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 
 @Preview
 @Composable
@@ -100,10 +103,12 @@ fun UserListItem(
     user: CustomerEntity,
     modifier: Modifier = Modifier
 ) {
+    val navigator = LocalNavigator.currentOrThrow
     Column(
         modifier
             .fillMaxWidth()
             .backgroundCommonCard()
+            .clickable { navigator.push(UserBillingScreen(userId = user.userId, userName = user.userName)) }
 
     ) {
 
