@@ -1,15 +1,19 @@
 package org.example.mandm.dataModel
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "routeEntity")
+@Entity(
+    tableName = "routeEntity",
+    indices = [Index(value = ["routeName"], unique = true)]
+)
 data class RouteEntity(
     @PrimaryKey(autoGenerate = true)
-    val routeId: Int = 0,           // Unique ID for each route
-    val routeName: String,          // Name of the route
-    val routeStartTime: String,     // e.g. "06:00 AM"
-    val routeEndTime: String,       // e.g. "09:00 AM"
-    val active: Boolean = true  ,    // Whether the route is currently active
-    val autoStart:Boolean=false
+    val routeId: Int = 0,
+    val routeName: String,
+    val routeStartTime: String,
+    val routeEndTime: String,
+    val active: Boolean = true,
+    val autoStart: Boolean = false
 )

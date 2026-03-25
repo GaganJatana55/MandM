@@ -1,9 +1,13 @@
 package org.example.mandm
 
 
+import YearMonth
 import kotlin.time.Duration.Companion.days
 import kotlinx.datetime.*
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
+@OptIn(ExperimentalTime::class)
 object DateTimeUtil {
 
     private val utc = TimeZone.UTC
@@ -40,4 +44,79 @@ object DateTimeUtil {
         return Instant.fromEpochMilliseconds(millis)
             .toLocalDateTime(local).time
     }
+    fun getCurrentYearMonth(): YearMonth {
+        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+       return YearMonth(today.year, today.monthNumber)
+
+    }
+
+
+
+    fun localDateTimeToMillis(
+        year: Int,
+        month: Int,
+        day: Int,
+        hour: Int,
+        minute: Int,
+        second: Int = 0,
+        timeZone: TimeZone = TimeZone.currentSystemDefault()
+    ): Long {
+
+        val localDateTime = LocalDateTime(
+            year = year,
+            monthNumber = month,
+            dayOfMonth = day,
+            hour = hour,
+            minute = minute,
+            second = second,
+            nanosecond = 0
+        )
+
+        return localDateTime
+            .toInstant(timeZone)
+            .toEpochMilliseconds()
+    }
+    fun Long.toLocalDateTime(): LocalDateTime =
+        Instant.fromEpochMilliseconds(this)
+            .toLocalDateTime(TimeZone.currentSystemDefault())
+
+
+
+    fun Long.toLocalDate(
+        timeZone: TimeZone = TimeZone.currentSystemDefault()
+    ): LocalDate {
+        return Instant
+            .fromEpochMilliseconds(this)
+            .toLocalDateTime(timeZone)
+            .date
+    }
+
+
+    fun LocalDate.toStartOfDayMillis(
+        timeZone: TimeZone = TimeZone.currentSystemDefault()
+    ): Long {
+        return this
+            .atStartOfDayIn(timeZone)
+            .toEpochMilliseconds()
+    }
+    fun toMillis(
+        year: Int,
+        month: Int,
+        day: Int,
+        hour: Int,
+        minute: Int,
+        second: Int = 0,
+        timeZone: TimeZone = TimeZone.currentSystemDefault()
+    ): Long {
+        return LocalDateTime(
+            year = year,
+            monthNumber = month,
+            dayOfMonth = day,
+            hour = hour,
+            minute = minute,
+            second = second,
+            nanosecond = 0
+        ).toInstant(timeZone).toEpochMilliseconds()
+    }
+
 }

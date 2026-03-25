@@ -1,20 +1,38 @@
 package org.example.mandm.dataModel
 
+import androidx.room.Embedded
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
+import androidx.room.Relation
 
-@Entity(tableName = "money_transactions")
+@Entity(
+    tableName = "money_transactions",
+    indices = [Index("userId")]
+)
 data class MoneyTransactionEntity(
     @PrimaryKey(autoGenerate = true)
-    val id: Long = 0L,                  // Unique transaction ID
+    val id: Long = 0L,
 
-    val userId: Long,                   // FK -> UserEntity.userId
-    val userName: String,               // For quick reference/display
+    val userId: Long,
+    val userName: String,
 
-    val dateTimeStamp: String,          // When the transaction occurred (e.g. "2025-10-05 10:15:30")
-    val editedOn: String? = null,       // When it was last modified (nullable)
+    val dateTimeStamp: Long,      // ✅ Use Long
+    val editedOn: Long? = null,   // ✅ Use Long
 
-    val amount: Double,                 // Amount of money involved
-    val transactionType: String,        // "Paid" or "Received"
-    val note: String? = null            // Optional: add remarks or reason
+    val amount: Double,
+    val transactionType: String,  // Later can convert to enum
+    val note: String? = null
+)
+
+data class MoneyTransactionWithLogs(
+
+    @Embedded
+    val transaction: MoneyTransactionEntity,
+
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "moneyTransactionId"
+    )
+    val editLogs: List<MoneyTransactionEditLogEntity>
 )

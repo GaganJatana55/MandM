@@ -1,15 +1,25 @@
 package org.example.mandm.viewModels
 
+import YearMonth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.example.mandm.repo.BillRepository
+import org.example.mandm.DateTimeUtil
 import org.example.mandm.dataModel.BillEntity
+import org.example.mandm.dataModel.LedgerItem
+import org.example.mandm.dataModel.MonthlyLedgerSummary
+import org.example.mandm.repo.BillRepository
+import org.example.mandm.repo.MilkRepository
+import org.example.mandm.repo.MoneyRepository
 
 data class BillingUiState(
     val isLoading: Boolean = false,
@@ -18,12 +28,90 @@ data class BillingUiState(
 )
 
 class BillingViewModel(
-    private val billRepository: BillRepository
+    private val billRepository: BillRepository,
+    private val milkRepository: MilkRepository,
+    private val moneyRepository: MoneyRepository
 ) : ViewModel() {
 
     private val _userId = MutableStateFlow<Long?>(null)
     private val _ui = MutableStateFlow(BillingUiState())
     val ui: StateFlow<BillingUiState> = _ui.asStateFlow()
+
+     val selectedYearMonth =
+        MutableStateFlow(DateTimeUtil.getCurrentYearMonth())
+
+    fun setYearMonth(yearMonth: YearMonth) {
+        selectedYearMonth.value = yearMonth
+    }
+
+    val totalAmountForMonth = MutableStateFlow<Int>(0)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val ledger: StateFlow<List<LedgerItem>> =
+        combine(
+            _userId,
+            selectedYearMonth
+        ) { userId, yearMonth ->
+            userId to yearMonth
+        }
+            .filter { it.first != null }
+            .flatMapLatest { (userId, yearMonth) ->
+
+                val start = yearMonth.startOfMonthMillis()
+                val end = yearMonth.endOfMonthMillis()
+
+                combine(
+                    milkRepository.getMilkTransactionsByRange(userId!!, start, end),
+                    moneyRepository.getMoneyTransactionsByRange(userId, start, end)
+                ) { milkList, moneyList ->
+
+                    val items =
+                        milkList.map {
+
+                            LedgerItem.Milk(it)
+                        } +
+                                moneyList.map { LedgerItem.Money(it) }
+
+                    items.sortedByDescending { it.dateTime }
+                }
+            }
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                emptyList()
+            )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val monthlySummary: StateFlow<MonthlyLedgerSummary> =
+        combine(
+            _userId,
+            selectedYearMonth
+        ) { userId, yearMonth ->
+            userId to yearMonth
+        }
+            .filter { it.first != null }
+            .flatMapLatest { (userId, yearMonth) ->
+
+                val start = yearMonth.startOfMonthMillis()
+                val end = yearMonth.endOfMonthMillis()
+
+                combine(
+                    milkRepository.getMilkMonthSummary(userId!!, start, end),
+                    moneyRepository.getMoneyMonthSummary(userId, start, end)
+                ) { milk, money ->
+
+                    MonthlyLedgerSummary(
+                        milk = milk,
+                        money = money,
+                        openingBalance = 0.0 // adjust later if you add carry-forward
+                    )
+                }
+            }
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                MonthlyLedgerSummary()
+            )
 
     init {
         viewModelScope.launch {
@@ -40,43 +128,9 @@ class BillingViewModel(
         _userId.value = userId
     }
 
-    fun generateBill(userId: Long, userName: String, endDate: String, createdOn: String) {
-        viewModelScope.launch {
-            _ui.value = _ui.value.copy(isLoading = true, errorMessage = null)
-            try {
-                billRepository.generateBill(userId, userName, endDate, createdOn)
-                _ui.value = _ui.value.copy(isLoading = false)
-            } catch (t: Throwable) {
-                _ui.value = _ui.value.copy(isLoading = false, errorMessage = t.message)
-            }
-        }
-    }
 
-    fun settleBill(bill: BillEntity, received: Double, paid: Double) {
-        viewModelScope.launch {
-            _ui.value = _ui.value.copy(isLoading = true, errorMessage = null)
-            try {
-                billRepository.settleBill(bill, amountReceived = received, amountPaid = paid)
-                _ui.value = _ui.value.copy(isLoading = false)
-            } catch (t: Throwable) {
-                _ui.value = _ui.value.copy(isLoading = false, errorMessage = t.message)
-            }
-        }
-    }
-
-    fun buildShareText(bill: BillEntity): String {
-        return buildString {
-            appendLine("Bill for ${bill.userName}")
-            appendLine("Range: ${bill.startDate} to ${bill.endDate}")
-            appendLine("Milk: ${bill.totalMilkQuantity} L, Amount: ${bill.totalMilkAmount}")
-            appendLine("Money: Received ${bill.moneyReceivedInRange}, Paid ${bill.moneyPaidInRange}")
-            appendLine("Carry Forward: ${bill.carryForwardAmount}")
-            appendLine("Settlements: Received ${bill.paymentsReceived}, Paid ${bill.paymentsPaid}")
-            appendLine("Pending: ${bill.pendingAmount} | Status: ${bill.status}")
-            append("Generated: ${bill.createdOn}")
-        }
-    }
 }
+
 
 
 

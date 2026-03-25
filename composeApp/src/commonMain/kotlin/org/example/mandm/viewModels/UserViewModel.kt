@@ -6,10 +6,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.example.mandm.domain.UserRepo
 import org.example.mandm.AppPreferences
 import org.example.mandm.RoleType
+import org.example.mandm.dataModel.RouteEntity
 
 class UserViewModel(private val userRepo: UserRepo):ViewModel(){
 var state by mutableStateOf("")
@@ -17,6 +19,8 @@ var state by mutableStateOf("")
 
     var selectedRole by mutableStateOf<RoleType?>(null)
         private set
+
+
 
     init {
         viewModelScope.launch {

@@ -133,7 +133,7 @@ class MainTabsScreen : Screen {
                         when (selectedRoute) {
                             BottomNavItem.Home -> HomeLandingScreen().Content()
                             BottomNavItem.Settings -> SettingsLandingScreen().Content()
-                            BottomNavItem.Summary -> UsersListScreen().Content()
+                            BottomNavItem.Summary -> RouteScreen().Content()
                             BottomNavItem.Users -> UsersListScreen().Content()
                         }
                     }

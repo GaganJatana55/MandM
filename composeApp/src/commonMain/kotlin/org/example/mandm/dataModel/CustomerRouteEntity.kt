@@ -1,89 +1,97 @@
 package org.example.mandm.dataModel
 
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "customer_route")
-data class CustomerRouteEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0L,
-    val customerId: Long,
-    val customerName: String,
-    val routeId: Int,
-    val sequenceNumber: Int,
 
+import androidx.room.*
+import kotlinx.coroutines.flow.Flow
+
+/* ---------------------------------------------------
+   ENTITIES
+--------------------------------------------------- */
+
+@Entity(
+    indices = [
+        Index("routeId"),
+        Index("customerId"),
+        Index("routeMilkId")
+    ]
 )
-@Entity
-data class RouteMilkEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0L,
-    val RouteId: Long,
-    val Date: String,
-    val Time: String,
-    val Status: String,
-    val MilkTransId: Long?,
-    val UserId:Long
-)
-
-
 data class CustomerRouteItem(
+
+    @PrimaryKey(autoGenerate = true)
     val id: Long = 0L,
+
     val customerId: Long,
     val customerName: String,
     val routeId: Int,
     val sequenceNumber: Int,
-    val routeEntity: RouteEntity,
-    val routeMilkItem: RouteMilkItem,
-    val customerEntity: CustomerEntity
 
+    val routeMilkId: Long? = null
 )
 
 
-
+@Entity
 data class RouteMilkItem(
+
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0L,
-    val RouteId: Long,
-    val Date: String,
-    val Time: String,
-    val Status: String,
-    val MilkTransId: Long?,
-    val UserId:Long,
-    val milkTransactionEntity: MilkTransactionEntity?
+
+    val routeId: Long,
+    val dateTimeStamp: Long,
+    val status: String,
+
+    val milkTransId: Long?,
+    val userId: Long
 )
 
 
 
 
-fun CustomerRouteEntity.toCustomerRouteItem(
-    routeEntity: RouteEntity,
-    routeMilkItem: RouteMilkItem,
-    customerEntity: CustomerEntity
-): CustomerRouteItem {
-    return CustomerRouteItem(
-        id = this.id,
-        customerId = this.customerId,
-        customerName = this.customerName,
-        routeId = this.routeId,
-        sequenceNumber = this.sequenceNumber,
-        routeEntity = routeEntity,
-        routeMilkItem = routeMilkItem,
-        customerEntity = customerEntity
-    )
-}
 
-fun RouteMilkEntity.toRouteMilkItem(
-    milkTransactionEntity: MilkTransactionEntity? = null
-): RouteMilkItem {
-    return RouteMilkItem(
-        id = this.id,
-        RouteId = this.RouteId,
-        Date = this.Date,
-        Time = this.Time,
-        Status = this.Status,
-        MilkTransId = this.MilkTransId,
-        UserId = this.UserId,
-        milkTransactionEntity = milkTransactionEntity
+
+
+
+/* ---------------------------------------------------
+   RELATION MODELS
+--------------------------------------------------- */
+
+data class RouteMilkItemWithTransaction(
+
+    @Embedded
+    val routeMilkItem: RouteMilkItem,
+
+    @Relation(
+        parentColumn = "milkTransId",
+        entityColumn = "id"
     )
-}
+    val milkTransaction: MilkTransactionEntity?
+)
+
+data class CustomerRouteWithDetails(
+
+    @Embedded
+    val routeItem: CustomerRouteItem,
+
+    @Relation(
+        parentColumn = "customerId",
+        entityColumn = "userId"
+    )
+    val customer: CustomerEntity,
+
+    @Relation(
+        parentColumn = "routeId",
+        entityColumn = "routeId"
+    )
+    val route: RouteEntity,
+
+    @Relation(
+        parentColumn = "routeMilkId",
+        entityColumn = "id",
+        entity = RouteMilkItem::class
+    )
+    val routeMilkItemWithTransaction: RouteMilkItemWithTransaction?
+)
 

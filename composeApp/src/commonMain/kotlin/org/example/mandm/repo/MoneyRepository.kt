@@ -4,6 +4,7 @@ import org.example.mandm.dao.MoneyDao
 import org.example.mandm.dataModel.MoneyTransactionEditLogEntity
 import org.example.mandm.dataModel.MoneyTransactionEntity
 import kotlinx.coroutines.flow.Flow
+import org.example.mandm.dataModel.MoneyTransactionWithLogs
 
 class MoneyRepository(
     private val moneyDao: MoneyDao
@@ -30,7 +31,7 @@ class MoneyRepository(
         moneyDao.getMoneyEditLogsForCustomer(customerId)
 
     // High-level save API that hides edit-log handling
-    suspend fun saveMoneyTransaction(transaction: MoneyTransactionEntity, timestamp: String): Long {
+    suspend fun saveMoneyTransaction(transaction: MoneyTransactionEntity, timestamp: Long): Long {
         return if (transaction.id == 0L) {
             moneyDao.insertMoneyTransaction(transaction)
         } else {
@@ -38,6 +39,20 @@ class MoneyRepository(
             transaction.id
         }
     }
+    fun getMoneyTransactionsByRange(
+        userId: Long,
+        start: Long,
+        end: Long
+    ): Flow<List<MoneyTransactionWithLogs>> {
+
+        return moneyDao.getMoneyTransactionsWithLogsByRange(
+            userId = userId,
+            start = start,
+            end = end
+        )
+    }
+    fun getMoneyMonthSummary(userId: Long, start: Long, end: Long) =
+        moneyDao.getMoneyMonthlySummary(userId, start, end)
 }
 
 

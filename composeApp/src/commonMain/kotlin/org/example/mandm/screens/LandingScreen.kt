@@ -35,14 +35,12 @@ import mandm.composeapp.generated.resources.ledger_icon
 import mandm.composeapp.generated.resources.settings_icon
 import org.example.mandm.roundCornerBottom
 import org.example.mandm.roundCornerTop
+import org.example.mandm.viewModels.DashboardViewModel
 import org.jetbrains.compose.resources.DrawableResource
 
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
-
-
-
-
+import org.koin.compose.viewmodel.koinViewModel
 
 
 @Composable
@@ -104,6 +102,7 @@ fun BottomNavBar(
     onItemSelected: (BottomNavItem) -> Unit = {}
 ) {
     var route by remember { mutableStateOf(selectedRoute) }
+
     Surface(
         modifier = Modifier.padding(horizontal = 8.dp).fillMaxWidth(),
         shape = roundCornerTop(),

@@ -30,7 +30,6 @@ fun App(
     var isLoggedIn by rememberSaveable { mutableStateOf(AppPreferences.isUserLoggedIn()) }
 
 
-
     MilkSellerTheme {
         if (showSplash) {
             SplashScreen { showSplash = false }

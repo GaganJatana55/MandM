@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDate
@@ -47,6 +47,9 @@ import kotlinx.datetime.toLocalDateTime
 import mandm.composeapp.generated.resources.Res
 import mandm.composeapp.generated.resources.add_user_icon
 import org.example.mandm.DateTimeUtil
+import org.example.mandm.DateTimeUtil.toLocalDate
+import org.example.mandm.DateTimeUtil.toLocalDateTime
+import org.example.mandm.DateTimeUtil.toStartOfDayMillis
 import org.example.mandm.PriceMode
 import org.example.mandm.PricingUtils
 import org.example.mandm.TransactionTypeConstants
@@ -61,6 +64,7 @@ import org.example.mandm.commonComponent.SelectableOptionWithCheckbox
 import org.example.mandm.commonComponent.ValidatedInputField
 import org.example.mandm.dataModel.CustomerEntity
 import org.example.mandm.dataModel.CustomerRouteItem
+import org.example.mandm.dataModel.CustomerRouteWithDetails
 import org.example.mandm.dataModel.MilkTransactionEntity
 import org.example.mandm.dataModel.MoneyTransactionEntity
 import org.example.mandm.formatMoney
@@ -71,6 +75,8 @@ import org.example.mandm.viewModels.MilkTransactionDialogViewModel
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 sealed class Tabs {
     object MilkOnly : Tabs()
@@ -87,9 +93,9 @@ fun TransactionDialog(
     onNextCLick: () -> Unit = {},
     onPrevClick: () -> Unit = {},
     onSaveClick: () -> Unit = {},
-    onSavedDetail: (CustomerRouteItem?, MilkTransactionEntity?, MoneyTransactionEntity?) -> Unit = { _, _, _ -> },
+    onSavedDetail: (CustomerRouteWithDetails?) -> Unit = { _-> },
     onSkipClick: () -> Unit = {},
-    routeMap: CustomerRouteItem? = null,
+    routeMap: CustomerRouteWithDetails? = null,
     existingMilkTx: MilkTransactionEntity? = null,
     existingMoneyTx: MoneyTransactionEntity? = null,
     isEditing: Boolean = false,
@@ -101,7 +107,7 @@ fun TransactionDialog(
             usePlatformDefaultWidth = false, dismissOnClickOutside = true, dismissOnBackPress = true
         )
     ) {
-        val dashboardViewModel: DashboardViewModel = koinViewModel()
+
         val milkVm: MilkTransactionDialogViewModel = koinViewModel()
         val scope = rememberCoroutineScope()
         LaunchedEffect(routeMap, existingMilkTx, existingMoneyTx, initialCustomer) {
@@ -185,8 +191,8 @@ fun TransactionDialog(
                             user = milkUi.value.selectedCustomer,
                             onSubmit = { draft ->
                                 scope.launch {
-                                    milkVm.saveOrUpdate(isEditing, draft, DateTimeUtil.currentUtcDateString())
-                                    onSavedDetail(routeMap, existingMilkTx, null)
+                                    milkVm.saveOrUpdate(isEditing, draft, DateTimeUtil.currentUtcMillis())
+                                    onSavedDetail(routeMap)
                                     if (!inRoute) onDismiss() else onSaveClick()
                                 }
                             },
@@ -200,8 +206,8 @@ fun TransactionDialog(
                             user = milkUi.value.selectedCustomer,
                             onSubmit = { draft ->
                                 scope.launch {
-                                    milkVm.saveOrUpdateMoney(isEditing, draft, DateTimeUtil.currentUtcDateString())
-                                    onSavedDetail(routeMap, existingMilkTx, existingMoneyTx)
+                                    milkVm.saveOrUpdateMoney(isEditing, draft, DateTimeUtil.currentUtcMillis())
+                                    onSavedDetail(routeMap)
                                     if (!inRoute) onDismiss() else onSaveClick()
                                 }
                             },
@@ -241,6 +247,7 @@ fun TabText(modifier: Modifier = Modifier, text: String = "Milk") {
     Text(text, modifier.padding(8.dp), color = MaterialTheme.colorScheme.onSurface)
 }
 
+@OptIn(ExperimentalTime::class)
 @Preview
 @Composable
 fun MilkTransaction(
@@ -250,8 +257,8 @@ fun MilkTransaction(
     onSkipClick: () -> Unit = {},
     existing: MilkTransactionEntity? = null,
     isEditing: Boolean = false,
-    routeMap: CustomerRouteItem? = null,
-    dateOverride: LocalDate? = null
+    routeMap: CustomerRouteWithDetails? = null,
+    dateOverride: Long? = null
 ) {
     var priceMode by rememberSaveable { mutableStateOf(PriceMode.FixPrice) }
     var transactionType by rememberSaveable { mutableStateOf(TransactionTypeConstants.Milk.BUY) }
@@ -284,15 +291,15 @@ fun MilkTransaction(
         }
     }
 
-    val today: LocalDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-    // Derive initial date from existing if possible (expects yyyy-MM-dd...)
-    val existingDate: LocalDate? = existing?.dateTimeStamp?.let { dt ->
-        runCatching { dt.substring(0, 10).toLocalDate() }.getOrNull()
-    }
-    val fromRoute: LocalDate? = routeMap?.routeMilkItem?.Date.let { dt -> runCatching { (dt?:"").substring(0, 10).toLocalDate() }.getOrNull() }
-    val initialDate = dateOverride ?: fromRoute ?: existingDate
-    var txDate by remember { mutableStateOf(initialDate) }
 
+
+    val existingDate: LocalDate? = existing?.dateTimeStamp?.toLocalDate()
+    val fromRoute: LocalDate? =
+        routeMap?.routeMilkItemWithTransaction?.routeMilkItem?.dateTimeStamp?.toLocalDate()
+
+    val initialDate = dateOverride?.toLocalDate() ?: fromRoute ?: existingDate
+
+    var txDate by remember { mutableStateOf(initialDate) }
     // Selected customer comes from parent; reflect directly in UI
     val displayUserName = existing?.userName ?: (user?.userName ?: "")
 
@@ -467,7 +474,7 @@ fun MilkTransaction(
                         id = existing?.id ?: 0L,
                         userId = userId,
                         userName = displayUserName,
-                        dateTimeStamp = (txDate ?: Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date).toString(),
+                        dateTimeStamp = (txDate?.toStartOfDayMillis() ?: DateTimeUtil.currentUtcMillis()),
                         editedOn = null,
                         quantity = quantityInput.toDoubleOrNull() ?: 0.0,
                         transactionType = transactionType,
@@ -486,6 +493,7 @@ fun MilkTransaction(
 
 }
 
+@OptIn(ExperimentalTime::class)
 @Preview
 @Composable
 fun MoneyTransaction(
@@ -511,9 +519,7 @@ fun MoneyTransaction(
     val displayUserName = existing?.userName ?: (user?.userName ?: "")
 
     // Handle date similar to Milk form
-    val existingMoneyDate: LocalDate? = existing?.dateTimeStamp?.let { dt ->
-        runCatching { dt.substring(0, 10).toLocalDate() }.getOrNull()
-    }
+    val existingMoneyDate: LocalDate? = existing?.dateTimeStamp?.toLocalDate()
     var moneyDate by remember { mutableStateOf(existingMoneyDate) }
 
     Surface(
@@ -601,7 +607,7 @@ fun MoneyTransaction(
                         id = existing?.id ?: 0L,
                         userId = userId,
                         userName = displayUserName,
-                        dateTimeStamp = (moneyDate ?: Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date).toString(),
+                        dateTimeStamp = (moneyDate?.toStartOfDayMillis() ?: DateTimeUtil.currentUtcMillis()),
                         editedOn = null,
                         amount = amountInput.toDoubleOrNull() ?: 0.0,
                         transactionType = transactionType,

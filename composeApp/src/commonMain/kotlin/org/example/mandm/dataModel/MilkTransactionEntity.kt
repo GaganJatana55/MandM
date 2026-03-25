@@ -9,8 +9,9 @@ data class MilkTransactionEntity(
     val id: Long = 0L,
     val userId: Long,
     val userName: String,
-    val dateTimeStamp: String,
+    val dateTimeStamp: Long,
     val editedOn: String? = null,
+
     val quantity: Double,
     val transactionType: String,
     val fixPrice: Boolean,
@@ -20,12 +21,12 @@ data class MilkTransactionEntity(
     val PreFilledData: Boolean=false,
     val total: Double,
 
-)
+    )
 
 
 
 // --- 1️⃣ Convert from MilkTransactionEntity → MilkTransactionEditLogEntity ---
-fun MilkTransactionEntity.toEditLog(updatedDateTimeStamp: String): MilkTransactionEditLogEntity {
+fun MilkTransactionEntity.toEditLog(updatedDateTimeStamp: Long): MilkTransactionEditLogEntity {
     return MilkTransactionEditLogEntity(
         milkTransactionId = this.id,             // Reference to main transaction
         updatedDateTimeStamp = updatedDateTimeStamp,

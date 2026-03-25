@@ -9,8 +9,10 @@ import androidx.room.Transaction
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
+import org.example.mandm.dataModel.MoneyMonthlySummary
 import org.example.mandm.dataModel.MoneyTransactionEditLogEntity
 import org.example.mandm.dataModel.MoneyTransactionEntity
+import org.example.mandm.dataModel.MoneyTransactionWithLogs
 import org.example.mandm.dataModel.toEditLog
 
 @Dao
@@ -50,13 +52,56 @@ interface MoneyDao {
 
     // Transactional update with log
     @Transaction
-    suspend fun updateMoneyTransactionWithLog(updated: MoneyTransactionEntity, updatedTime: String) {
+    suspend fun updateMoneyTransactionWithLog(updated: MoneyTransactionEntity, updatedTime: Long) {
         val existing = getMoneyTransactionById(updated.id).firstOrNull()
         if (existing != null) {
             insertMoneyEditLog(existing.toEditLog(updatedTime))
         }
         updateMoneyTransaction(updated)
     }
+
+    @Transaction
+    @Query("""
+    SELECT * FROM money_transactions
+    WHERE userId = :userId
+    ORDER BY dateTimeStamp DESC
+""")
+    fun getMoneyTransactionsWithLogs(
+        userId: Long
+    ): Flow<List<MoneyTransactionWithLogs>>
+
+    @Transaction
+    @Query("""
+    SELECT * FROM money_transactions
+    WHERE userId = :userId
+    AND dateTimeStamp BETWEEN :start AND :end
+    ORDER BY dateTimeStamp DESC
+""")
+    fun getMoneyTransactionsWithLogsByRange(
+        userId: Long,
+        start: Long,
+        end: Long
+    ): Flow<List<MoneyTransactionWithLogs>>
+    @Query("""
+    SELECT 
+        COALESCE(SUM(CASE 
+            WHEN transactionType = 'Received' 
+            THEN amount ELSE 0 END), 0) as moneyReceived,
+
+        COALESCE(SUM(CASE 
+            WHEN transactionType = 'Paid' 
+            THEN amount ELSE 0 END), 0) as moneyPaid
+
+    FROM money_transactions
+    WHERE userId = :userId
+    AND dateTimeStamp BETWEEN :start AND :end
+""")
+    fun getMoneyMonthlySummary(
+        userId: Long,
+        start: Long,
+        end: Long
+    ): Flow<MoneyMonthlySummary>
 }
+
 
 

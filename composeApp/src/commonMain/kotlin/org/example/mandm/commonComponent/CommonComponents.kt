@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -233,7 +234,7 @@ fun BuySellSwitch(
                 .background(
                     if (isBuy) AppColors.Green.copy(alpha = 0.18f) else Color.Transparent,
                     shape = RoundedCornerShape(10.dp)
-                ) .padding(horizontal = 10.dp, vertical = 6.dp),
+                ).padding(horizontal = 10.dp, vertical = 6.dp),
             color = if (isBuy) AppColors.Green else MaterialTheme.colorScheme.onSurface,
             fontWeight = if (isBuy) FontWeight.SemiBold else FontWeight.Normal,
         )
@@ -534,8 +535,8 @@ fun BottomSurfaceCard(
 ) {
     Surface(
         modifier = modifier
-            .mainBackground().paddingCommon(),
-        shape = roundCornerBottom(),
+            .mainBackground().padding(horizontal =12.dp ),
+        shape = roundCorner(),
         shadowElevation = 2.dp
     ) {
         Box(Modifier.paddingCommon(), contentAlignment = contentAlignMent) {
@@ -550,20 +551,27 @@ fun GetCommonScaffoldWithColumnCenter(
     modifier: Modifier = Modifier,
     topBarContentAlignment: Alignment = Alignment.TopStart,
     topBar: @Composable () -> Unit,
+    bottomBar: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit,
 
     ) {
-    Scaffold(topBar = {
-        TopBar {
-            Box(
-                modifier = Modifier.fillMaxWidth()
-                    .padding(WindowInsets.statusBars.asPaddingValues()).padding(bottom = 8.dp),
-                contentAlignment = topBarContentAlignment
-            ) { topBar() }
-        }
-    }, modifier = Modifier.mainBackground().fillMaxSize()) {
+    Scaffold(
+        topBar = {
+            TopBar {
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(WindowInsets.statusBars.asPaddingValues()).padding(bottom = 8.dp),
+                    contentAlignment = topBarContentAlignment
+                ) { topBar() }
+            }
+        }, bottomBar = {
+            if (bottomBar != null) {
+                BottomSurfaceCard(modifier= Modifier.padding(WindowInsets.navigationBars.asPaddingValues()),content = bottomBar)
+            }
+        }, modifier = Modifier.mainBackground().fillMaxSize()
+    ) {
         Surface(
-            modifier = modifier.fillMaxSize().padding(top = it.calculateTopPadding())
+            modifier = modifier.fillMaxSize().padding(top = it.calculateTopPadding(), bottom = it.calculateBottomPadding())
         ) {
             Column(Modifier.fillMaxSize().mainBackground().paddingCommon()) {
                 content()
@@ -573,6 +581,6 @@ fun GetCommonScaffoldWithColumnCenter(
 }
 
 @Composable
-fun FormSpacer(){
+fun FormSpacer() {
     Spacer(Modifier.height(2.dp))
 }

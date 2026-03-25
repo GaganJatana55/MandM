@@ -41,7 +41,7 @@ import org.jetbrains.compose.resources.painterResource
 import androidx.compose.foundation.Image
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.foundation.shape.CircleShape
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
@@ -50,9 +50,11 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
 import kotlinx.datetime.minus
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.ExperimentalTime
 
 enum class SelectionMode { Single, Range }
 
+@OptIn(ExperimentalTime::class)
 @Composable
 fun DateRangePickerDialog(
     onDismiss: () -> Unit,

@@ -16,4 +16,5 @@ val presentationDataModule = module{
     viewModelOf(::CreateCustomerViewModel)
     viewModelOf(::MilkTransactionDialogViewModel)
     viewModelOf(::BillingViewModel)
+    viewModelOf(::BillingViewModel)
 }

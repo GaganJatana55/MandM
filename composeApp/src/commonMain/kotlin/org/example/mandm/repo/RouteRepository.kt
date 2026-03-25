@@ -2,10 +2,8 @@ package org.example.mandm.repo
 
 import kotlinx.coroutines.flow.Flow
 import org.example.mandm.dao.RouteDao
-import org.example.mandm.TransactionStatus
-import org.example.mandm.RouteSequenceUtil
 import org.example.mandm.dataModel.CustomerEntity
-import org.example.mandm.dataModel.CustomerRouteEntity
+import org.example.mandm.dataModel.CustomerRouteItem
 import org.example.mandm.dataModel.RouteEntity
 
 class RouteRepository(
@@ -20,32 +18,65 @@ class RouteRepository(
     fun getRouteById(id: Int): Flow<RouteEntity?> = routeDao.getRouteById(id)
 
     // Customer-Route
-    suspend fun insertCustomerRoute(mapping: CustomerRouteEntity): Long = routeDao.insertCustomerRoute(mapping)
-    suspend fun updateCustomerRoute(mapping: CustomerRouteEntity): Int = routeDao.updateCustomerRoute(mapping)
-    suspend fun deleteCustomerFromRoute(customerId: Long, routeId: Int): Int =
-        routeDao.deleteCustomerFromRoute(customerId, routeId)
+    suspend fun insertCustomerRoute(mapping: CustomerRouteItem): Long = routeDao.insertCustomerRoute(mapping)
+    suspend fun updateCustomerRoute(mapping: CustomerRouteItem): Int = routeDao.updateCustomerRoute(mapping)
+    suspend fun deleteCustomerFromRoute(customerId: Long, routeId: Int): Int {
+        val id= routeDao.deleteCustomerFromRoute(customerId, routeId)
+
+    return  id;
+    }
     suspend fun updateCustomerRouteStatus(id: Long, status: String): Int = routeDao.updateCustomerRouteStatus(id, status)
     suspend fun updateCustomerRouteSequence(id: Long, sequenceNumber: Int): Int = routeDao.updateCustomerRouteSequence(id, sequenceNumber)
-//    fun getCustomersForRoute(routeId: Int): Flow<List<CustomerEntity>> = routeDao.getCustomersForRoute(routeId)
 
-    // Helper to add a customer to a route with sensible defaults
-//    suspend fun addCustomerToRoute(
-//        customerId: Long,
-//        routeId: Int,
-//        sequenceNumber: Int = RouteSequenceUtil.nextSequence(),
-//        status: String = TransactionStatus.PENDING,
-//        date: String
-//    ): Long {
-//        return routeDao.insertCustomerRoute(
-//            CustomerRouteEntity(
-//                customerId = customerId,
-//                routeId = routeId,
-//                sequenceNumber = sequenceNumber,
-//                status = status,
-//                date = date
-//            )
-//        )
-//    }
+    suspend fun ensureDefaultRoutes() {
+
+        val count = routeDao.countDefaultRoutes()
+
+        if (count < 2) {
+            val defaultRoutes = DefaultRouteFactory.createDefaultRoutes()
+            routeDao.insertRoutes(defaultRoutes)
+        }
+    }
+    suspend fun insertCustomerToRoute(route: RouteEntity,customerEntity: CustomerEntity): Long{
+        var lastNumber=routeDao.getLastSequenceNumber(route.routeId)
+        if (lastNumber==null){
+           lastNumber=1
+        }
+        return insertCustomerRoute(CustomerRouteItem(customerId = customerEntity.userId, customerName = customerEntity.userName, routeId = route.routeId, sequenceNumber = lastNumber))
+    }
+
+    suspend fun updateCustomerRouteOrder(items: List<CustomerRouteItem>) {
+
+        val updatedList = items.mapIndexed { index, item ->
+            item.copy(sequenceNumber = index + 1)
+        }
+
+        routeDao.updateCustomerRouteItems(updatedList)
+    }
+
 }
 
 
+object DefaultRouteFactory {
+
+    fun createDefaultRoutes(): List<RouteEntity> {
+
+        val morningRoute = RouteEntity(
+            routeName = "Morning",
+            routeStartTime = "03:30 AM",
+            routeEndTime = "03:30 PM",
+            active = true,
+            autoStart = true
+        )
+
+        val eveningRoute = RouteEntity(
+            routeName = "Evening",
+            routeStartTime = "03:30 PM",
+            routeEndTime = "03:30 AM",
+            active = true,
+            autoStart = true
+        )
+
+        return listOf(morningRoute, eveningRoute)
+    }
+}

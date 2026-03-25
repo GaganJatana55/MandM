@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "a5bf69fc1c2bd285fa536c9efb442209",
+    "identityHash": "3bdbb1d1005b91e1005853c7171c14c5",
     "entities": [
       {
         "tableName": "customerEntity",
@@ -127,11 +127,22 @@
           "columnNames": [
             "routeId"
           ]
-        }
+        },
+        "indices": [
+          {
+            "name": "index_routeEntity_routeName",
+            "unique": true,
+            "columnNames": [
+              "routeName"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_routeEntity_routeName` ON `${TABLE_NAME}` (`routeName`)"
+          }
+        ]
       },
       {
-        "tableName": "customer_route",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `customerId` INTEGER NOT NULL, `customerName` TEXT NOT NULL, `routeId` INTEGER NOT NULL, `sequenceNumber` INTEGER NOT NULL)",
+        "tableName": "CustomerRouteItem",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `customerId` INTEGER NOT NULL, `customerName` TEXT NOT NULL, `routeId` INTEGER NOT NULL, `sequenceNumber` INTEGER NOT NULL, `routeMilkId` INTEGER)",
         "fields": [
           {
             "fieldPath": "id",
@@ -162,6 +173,87 @@
             "columnName": "sequenceNumber",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "routeMilkId",
+            "columnName": "routeMilkId",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_CustomerRouteItem_routeId",
+            "unique": false,
+            "columnNames": [
+              "routeId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_CustomerRouteItem_routeId` ON `${TABLE_NAME}` (`routeId`)"
+          },
+          {
+            "name": "index_CustomerRouteItem_customerId",
+            "unique": false,
+            "columnNames": [
+              "customerId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_CustomerRouteItem_customerId` ON `${TABLE_NAME}` (`customerId`)"
+          },
+          {
+            "name": "index_CustomerRouteItem_routeMilkId",
+            "unique": false,
+            "columnNames": [
+              "routeMilkId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_CustomerRouteItem_routeMilkId` ON `${TABLE_NAME}` (`routeMilkId`)"
+          }
+        ]
+      },
+      {
+        "tableName": "RouteMilkItem",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `routeId` INTEGER NOT NULL, `dateTimeStamp` INTEGER NOT NULL, `status` TEXT NOT NULL, `milkTransId` INTEGER, `userId` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "routeId",
+            "columnName": "routeId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dateTimeStamp",
+            "columnName": "dateTimeStamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "milkTransId",
+            "columnName": "milkTransId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "userId",
+            "columnName": "userId",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -173,7 +265,7 @@
       },
       {
         "tableName": "milk_transactions",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` INTEGER NOT NULL, `userName` TEXT NOT NULL, `dateTimeStamp` TEXT NOT NULL, `editedOn` TEXT, `quantity` REAL NOT NULL, `transactionType` TEXT NOT NULL, `fixPrice` INTEGER NOT NULL, `snfValue` REAL NOT NULL, `snfPrice` REAL NOT NULL, `fixPriceValue` REAL NOT NULL, `PreFilledData` INTEGER NOT NULL, `total` REAL NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` INTEGER NOT NULL, `userName` TEXT NOT NULL, `dateTimeStamp` INTEGER NOT NULL, `editedOn` TEXT, `quantity` REAL NOT NULL, `transactionType` TEXT NOT NULL, `fixPrice` INTEGER NOT NULL, `snfValue` REAL NOT NULL, `snfPrice` REAL NOT NULL, `fixPriceValue` REAL NOT NULL, `PreFilledData` INTEGER NOT NULL, `total` REAL NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -196,7 +288,7 @@
           {
             "fieldPath": "dateTimeStamp",
             "columnName": "dateTimeStamp",
-            "affinity": "TEXT",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
@@ -262,7 +354,7 @@
       },
       {
         "tableName": "milk_transaction_edit_logs",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `milkTransactionId` INTEGER NOT NULL, `updatedDateTimeStamp` TEXT NOT NULL, `userId` INTEGER NOT NULL, `userName` TEXT NOT NULL, `dateTimeStamp` TEXT NOT NULL, `editedOn` TEXT, `quantity` REAL NOT NULL, `transactionType` TEXT NOT NULL, `fixPrice` INTEGER NOT NULL, `snfValue` REAL NOT NULL, `snfPrice` REAL NOT NULL, `fixPriceValue` REAL NOT NULL, `PrefilledData` INTEGER NOT NULL, `total` REAL NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `milkTransactionId` INTEGER NOT NULL, `updatedDateTimeStamp` INTEGER NOT NULL, `userId` INTEGER NOT NULL, `userName` TEXT NOT NULL, `dateTimeStamp` INTEGER NOT NULL, `editedOn` TEXT, `quantity` REAL NOT NULL, `transactionType` TEXT NOT NULL, `fixPrice` INTEGER NOT NULL, `snfValue` REAL NOT NULL, `snfPrice` REAL NOT NULL, `fixPriceValue` REAL NOT NULL, `PrefilledData` INTEGER NOT NULL, `total` REAL NOT NULL, FOREIGN KEY(`milkTransactionId`) REFERENCES `milk_transactions`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -279,7 +371,7 @@
           {
             "fieldPath": "updatedDateTimeStamp",
             "columnName": "updatedDateTimeStamp",
-            "affinity": "TEXT",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
@@ -297,7 +389,7 @@
           {
             "fieldPath": "dateTimeStamp",
             "columnName": "dateTimeStamp",
-            "affinity": "TEXT",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
@@ -359,11 +451,35 @@
           "columnNames": [
             "id"
           ]
-        }
+        },
+        "indices": [
+          {
+            "name": "index_milk_transaction_edit_logs_milkTransactionId",
+            "unique": false,
+            "columnNames": [
+              "milkTransactionId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_milk_transaction_edit_logs_milkTransactionId` ON `${TABLE_NAME}` (`milkTransactionId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "milk_transactions",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "milkTransactionId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
       },
       {
         "tableName": "money_transactions",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` INTEGER NOT NULL, `userName` TEXT NOT NULL, `dateTimeStamp` TEXT NOT NULL, `editedOn` TEXT, `amount` REAL NOT NULL, `transactionType` TEXT NOT NULL, `note` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `userId` INTEGER NOT NULL, `userName` TEXT NOT NULL, `dateTimeStamp` INTEGER NOT NULL, `editedOn` INTEGER, `amount` REAL NOT NULL, `transactionType` TEXT NOT NULL, `note` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -386,13 +502,13 @@
           {
             "fieldPath": "dateTimeStamp",
             "columnName": "dateTimeStamp",
-            "affinity": "TEXT",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
             "fieldPath": "editedOn",
             "columnName": "editedOn",
-            "affinity": "TEXT"
+            "affinity": "INTEGER"
           },
           {
             "fieldPath": "amount",
@@ -417,11 +533,22 @@
           "columnNames": [
             "id"
           ]
-        }
+        },
+        "indices": [
+          {
+            "name": "index_money_transactions_userId",
+            "unique": false,
+            "columnNames": [
+              "userId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_money_transactions_userId` ON `${TABLE_NAME}` (`userId`)"
+          }
+        ]
       },
       {
         "tableName": "money_transaction_edit_logs",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `moneyTransactionId` INTEGER NOT NULL, `updatedDateTimeStamp` TEXT NOT NULL, `userId` INTEGER NOT NULL, `userName` TEXT NOT NULL, `dateTimeStamp` TEXT NOT NULL, `editedOn` TEXT, `amount` REAL NOT NULL, `transactionType` TEXT NOT NULL, `note` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `moneyTransactionId` INTEGER NOT NULL, `updatedDateTimeStamp` INTEGER NOT NULL, `userId` INTEGER NOT NULL, `userName` TEXT NOT NULL, `dateTimeStamp` INTEGER NOT NULL, `editedOn` INTEGER, `amount` REAL NOT NULL, `transactionType` TEXT NOT NULL, `note` TEXT, FOREIGN KEY(`moneyTransactionId`) REFERENCES `money_transactions`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -438,7 +565,7 @@
           {
             "fieldPath": "updatedDateTimeStamp",
             "columnName": "updatedDateTimeStamp",
-            "affinity": "TEXT",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
@@ -456,13 +583,13 @@
           {
             "fieldPath": "dateTimeStamp",
             "columnName": "dateTimeStamp",
-            "affinity": "TEXT",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
             "fieldPath": "editedOn",
             "columnName": "editedOn",
-            "affinity": "TEXT"
+            "affinity": "INTEGER"
           },
           {
             "fieldPath": "amount",
@@ -487,7 +614,31 @@
           "columnNames": [
             "id"
           ]
-        }
+        },
+        "indices": [
+          {
+            "name": "index_money_transaction_edit_logs_moneyTransactionId",
+            "unique": false,
+            "columnNames": [
+              "moneyTransactionId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_money_transaction_edit_logs_moneyTransactionId` ON `${TABLE_NAME}` (`moneyTransactionId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "money_transactions",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "moneyTransactionId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
       },
       {
         "tableName": "User",
@@ -650,64 +801,11 @@
             "id"
           ]
         }
-      },
-      {
-        "tableName": "RouteMilkEntity",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `RouteId` INTEGER NOT NULL, `Date` TEXT NOT NULL, `Time` TEXT NOT NULL, `Status` TEXT NOT NULL, `MilkTransId` INTEGER, `UserId` INTEGER NOT NULL)",
-        "fields": [
-          {
-            "fieldPath": "id",
-            "columnName": "id",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "RouteId",
-            "columnName": "RouteId",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "Date",
-            "columnName": "Date",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "Time",
-            "columnName": "Time",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "Status",
-            "columnName": "Status",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "MilkTransId",
-            "columnName": "MilkTransId",
-            "affinity": "INTEGER"
-          },
-          {
-            "fieldPath": "UserId",
-            "columnName": "UserId",
-            "affinity": "INTEGER",
-            "notNull": true
-          }
-        ],
-        "primaryKey": {
-          "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
-        }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a5bf69fc1c2bd285fa536c9efb442209')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3bdbb1d1005b91e1005853c7171c14c5')"
     ]
   }
 }

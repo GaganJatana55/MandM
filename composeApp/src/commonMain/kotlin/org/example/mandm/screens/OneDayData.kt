@@ -41,18 +41,23 @@ import org.example.mandm.backgroundCommonCard
 import org.example.mandm.commonComponent.ButtonRoundCorner
 import org.example.mandm.commonComponent.GetCommonScaffoldForTabs
 import org.example.mandm.dataModel.MilkTransactionEntity
-import org.example.mandm.dataModel.sortTransactionsByStatus
 import org.example.mandm.formatMoney
 import org.example.mandm.getStatusBorderColor
-import org.example.mandm.repo.sampleCustomerRouteItems
+import org.example.mandm.repo.sampleCustomerRouteWithDetails
 import org.example.mandm.theme.AppColors
+import org.example.mandm.viewModels.DashboardViewModel
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.koin.compose.viewmodel.koinViewModel
 
 @Preview
 @Composable
 fun DailyRouteData(modifier: Modifier = Modifier) {
+
+    var viewModel: DashboardViewModel= koinViewModel()
+
     val scrollState = rememberScrollState()
+
     GetCommonScaffoldForTabs(modifier = modifier, topBar = {
 
         Row(
@@ -71,12 +76,10 @@ fun DailyRouteData(modifier: Modifier = Modifier) {
         HorizontalDivider()
         LazyColumn(Modifier.scrollable(scrollState, orientation = Orientation.Vertical)) {
 
-            items(
-                sortTransactionsByStatus(sampleCustomerRouteItems)
-            ) {
+            items(sampleCustomerRouteWithDetails) {
                 DailyItem(
-                    status = it.routeMilkItem.Status,
-                    transaction = it.routeMilkItem.milkTransactionEntity
+                    status = it.routeMilkItemWithTransaction!!.routeMilkItem.status,
+                    transaction = it.routeMilkItemWithTransaction.milkTransaction
                 )
             }
 

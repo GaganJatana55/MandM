@@ -53,6 +53,7 @@ object AppPreferences {
         const val VILLAGE = "village"
         const val ROLE = "role"
         const val IS_SUBSCRIBED = "is_subscribed"
+        const val FIRST_TIME_APP_INSTALLED = "first_time_app_installed"
     }
 
     fun setUserId(value: String) = saveString(Keys.USER_ID, value)
@@ -81,6 +82,11 @@ object AppPreferences {
 
     fun setIsSubscribed(value: Boolean) = saveBoolean(Keys.IS_SUBSCRIBED, value)
     fun isSubscribed(): Boolean = getBoolean(Keys.IS_SUBSCRIBED, false)
+
+
+    fun setAppFirstTimeInstalled(value: Boolean) = saveBoolean(Keys.FIRST_TIME_APP_INSTALLED, value)
+    fun isAppFirstStimeInstalled(): Boolean = getBoolean(Keys.FIRST_TIME_APP_INSTALLED, false)
+
 
     // Clear everything
     fun clear() {

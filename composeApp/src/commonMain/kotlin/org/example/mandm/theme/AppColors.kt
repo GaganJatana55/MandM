@@ -21,7 +21,7 @@ object AppColors {
     val Red: Color
         @Composable get() = if (isSystemInDarkTheme()) RedDark else RedLight
 
-
+val LightGreenBackground  = Color(0xFFE8EEE7)
     // Orange
     private val OrangeLight = Color(0xFFEE7722)
     private val OrangeDark = Color(0xFFEE7722)

@@ -7,19 +7,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalDate
 import org.example.mandm.dataModel.CustomerEntity
+import org.example.mandm.dataModel.CustomerRouteItem
+import org.example.mandm.dataModel.CustomerRouteWithDetails
 import org.example.mandm.dataModel.MilkTransactionEntity
 import org.example.mandm.dataModel.MoneyTransactionEntity
 import org.example.mandm.repo.CustomerRepository
 import org.example.mandm.repo.MilkRepository
 import org.example.mandm.repo.MoneyRepository
-import kotlinx.coroutines.flow.firstOrNull
-import org.example.mandm.dataModel.CustomerRouteEntity
-import org.example.mandm.dataModel.CustomerRouteItem
 
 data class MilkTxUiState(
     val query: String = "",
@@ -65,7 +64,7 @@ class MilkTransactionDialogViewModel(
     }
 
     fun initWith(
-        routeMap: CustomerRouteItem?,
+        routeMap: CustomerRouteWithDetails?,
         existingMilk: MilkTransactionEntity?,
         existingMoney: MoneyTransactionEntity?,
         initialCustomer: CustomerEntity?
@@ -75,7 +74,7 @@ class MilkTransactionDialogViewModel(
                 initialCustomer != null -> initialCustomer
                 existingMilk?.userId != null -> customerRepo.getCustomerById(existingMilk.userId).firstOrNull()
                 existingMoney?.userId != null -> customerRepo.getCustomerById(existingMoney.userId).firstOrNull()
-                routeMap?.customerId != null -> customerRepo.getCustomerById(routeMap.customerId).firstOrNull()
+                routeMap?.customer?.userId != null -> customerRepo.getCustomerById(routeMap.customer.userId).firstOrNull()
                 else -> null
             }
             _ui.value = if (resolvedCustomer != null) {
@@ -89,7 +88,7 @@ class MilkTransactionDialogViewModel(
     suspend fun saveOrUpdate(
         isEditing: Boolean,
         draft: MilkTransactionEntity,
-        timestamp: String
+        timestamp: Long
     ) {
         _ui.value = _ui.value.copy(isLoading = true, errorMessage = null)
         try {
@@ -107,7 +106,7 @@ class MilkTransactionDialogViewModel(
     suspend fun saveOrUpdateMoney(
         isEditing: Boolean,
         draft: MoneyTransactionEntity,
-        timestamp: String
+        timestamp: Long
     ) {
         _ui.value = _ui.value.copy(isLoading = true, errorMessage = null)
         try {

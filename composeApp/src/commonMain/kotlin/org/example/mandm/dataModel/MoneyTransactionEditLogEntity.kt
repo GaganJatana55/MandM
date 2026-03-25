@@ -1,29 +1,41 @@
 package org.example.mandm.dataModel
 
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
-
-@Entity(tableName = "money_transaction_edit_logs")
+@Entity(
+    tableName = "money_transaction_edit_logs",
+    foreignKeys = [
+        ForeignKey(
+            entity = MoneyTransactionEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["moneyTransactionId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [Index("moneyTransactionId")]
+)
 data class MoneyTransactionEditLogEntity(
     @PrimaryKey(autoGenerate = true)
-    val id: Long = 0L,                        // Unique log ID
+    val id: Long = 0L,
 
-    val moneyTransactionId: Long,             // FK -> MoneyTransactionEntity.id
-    val updatedDateTimeStamp: String,         // When edit occurred (e.g. "2025-10-05 15:45:00")
+    val moneyTransactionId: Long,
+    val updatedDateTimeStamp: Long,  // ✅ Long
 
     val userId: Long,
     val userName: String,
 
-    val dateTimeStamp: String,                // Original transaction time
-    val editedOn: String?,                    // Original transaction edit time
+    val dateTimeStamp: Long,
+    val editedOn: Long?,
+
     val amount: Double,
-    val transactionType: String,              // "Paid" or "Received"
-    val note: String?                         // Optional description/remark
+    val transactionType: String,
+    val note: String?
 )
 
-
 // --- 1️⃣ Convert from MoneyTransactionEntity → MoneyTransactionEditLogEntity ---
-fun MoneyTransactionEntity.toEditLog(updatedDateTimeStamp: String): MoneyTransactionEditLogEntity {
+fun MoneyTransactionEntity.toEditLog(updatedDateTimeStamp: Long): MoneyTransactionEditLogEntity {
     return MoneyTransactionEditLogEntity(
         moneyTransactionId = this.id,             // Link to main transaction
         updatedDateTimeStamp = updatedDateTimeStamp,
