@@ -3,7 +3,8 @@ package org.example.mandm.dataModel
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-
+import kotlinx.serialization.Serializable
+@Serializable
 @Entity(
     tableName = "routeEntity",
     indices = [Index(value = ["routeName"], unique = true)]

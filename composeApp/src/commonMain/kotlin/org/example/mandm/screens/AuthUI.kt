@@ -34,11 +34,14 @@ import org.example.mandm.commonComponent.PhoneInputWithValidation
 import org.example.mandm.commonComponent.ValidatedInputField
 import org.example.mandm.commonComponent.ValidationType
 import org.example.mandm.mainBackground
+import org.example.mandm.screens.screenNavigationParams.Home
+import org.example.mandm.screens.screenNavigationParams.SignIn
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Preview
 @Composable
 fun SignInUI(modifier: Modifier = Modifier) {
+    val navController = LocalNavController.current // Global access
     GetCommonScaffoldWithColumnCenter(modifier.fillMaxSize().mainBackground(), topBar = {
 
         Text(
@@ -69,7 +72,9 @@ Spacer(Modifier.height(40.dp))
                 Spacer(Modifier.height(20.dp))
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     ButtonRoundCorner(text = "Sign In") {
-                        /**Todo on click **/
+                        navController.navigate(Home) {
+                            popUpTo<SignIn> { inclusive = true }
+                        }
                     }
                 }
                 Spacer(Modifier.height(30.dp))

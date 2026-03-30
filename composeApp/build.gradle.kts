@@ -7,7 +7,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
-
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.room)
 
@@ -59,10 +59,14 @@ kotlin {
             implementation(libs.sqlite.bundled)
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
             implementation("com.russhwolf:multiplatform-settings-no-arg:1.1.1")
-
+            implementation(libs.ktor.http)
+            implementation(libs.navigation.compose)
+//            implementation(libs.androidx.navigation.compose)
+            implementation(libs.kotlinx.serialization.json)
             api(libs.koin.core)
-            implementation(libs.voyager.navigator)
-            implementation(libs.voyager.tab.navigator)
+//            implementation(libs.voyager.navigator)
+//            implementation(libs.voyager.tab.navigator)
+            implementation(libs.reorderable)
         }
 
         commonTest.dependencies {

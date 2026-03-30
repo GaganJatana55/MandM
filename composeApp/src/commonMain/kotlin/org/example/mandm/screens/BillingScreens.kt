@@ -69,8 +69,6 @@ import kotlin.time.ExperimentalTime
 fun BillListScreen(
     userId: Long = 11,
     userName: String = "Name",
-
-    onShareText: (String) -> Unit = {}
 ) {
     val viewModel: BillingViewModel = koinViewModel()
     LaunchedEffect(userId) { viewModel.loadForUser(userId) }

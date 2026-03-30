@@ -85,7 +85,7 @@ object AppPreferences {
 
 
     fun setAppFirstTimeInstalled(value: Boolean) = saveBoolean(Keys.FIRST_TIME_APP_INSTALLED, value)
-    fun isAppFirstStimeInstalled(): Boolean = getBoolean(Keys.FIRST_TIME_APP_INSTALLED, false)
+    fun isAppFirstStimeInstalled(): Boolean = getBoolean(Keys.FIRST_TIME_APP_INSTALLED, true)
 
 
     // Clear everything

@@ -1,16 +1,12 @@
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -29,18 +25,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hasRoute
 import mandm.composeapp.generated.resources.Res
 import mandm.composeapp.generated.resources.home_icon
 import mandm.composeapp.generated.resources.ledger_icon
 import mandm.composeapp.generated.resources.settings_icon
-import org.example.mandm.roundCornerBottom
 import org.example.mandm.roundCornerTop
-import org.example.mandm.viewModels.DashboardViewModel
+import org.example.mandm.screens.screenNavigationParams.Billing
+import org.example.mandm.screens.screenNavigationParams.Clients
+import org.example.mandm.screens.screenNavigationParams.Home
+import org.example.mandm.screens.screenNavigationParams.Routes
 import org.jetbrains.compose.resources.DrawableResource
-
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
-import org.koin.compose.viewmodel.koinViewModel
 
 
 @Composable
@@ -78,31 +75,31 @@ fun ThreeWaySwitch(selected: Int = 1, onSelect: (Int) -> Unit) {
 }
 
 
-sealed class BottomNavItem(
-    val route: String,
+sealed class BottomNavItem<T : Any>(
+    val route: T,          // This is now the Serialized Object (Home, Billing, etc.)
     val label: String,
     val icon: DrawableResource
 ) {
-    object Home : BottomNavItem("home", "Home",Res.drawable.home_icon )
-    object Summary : BottomNavItem("summary", "Summary", Res.drawable.ledger_icon)
-    object Users : BottomNavItem("users", "Users", Res.drawable.ledger_icon)
-    object Settings : BottomNavItem("settings", "Settings", Res.drawable.settings_icon)
+    object HomeItem : BottomNavItem<Home>(Home, "Home", Res.drawable.home_icon)
+    object BillingItem : BottomNavItem<Billing>(Billing, "Billing", Res.drawable.ledger_icon)
+    object ClientsItem : BottomNavItem<Clients>(Clients, "Clients", Res.drawable.ledger_icon)
+    object RoutesItem : BottomNavItem<Routes>(Routes, "Routes", Res.drawable.settings_icon)
 }
+
 val bottomNavItems = listOf(
-    BottomNavItem.Home,
-    BottomNavItem.Summary,
-    BottomNavItem.Users,
-    BottomNavItem.Settings
+    BottomNavItem.HomeItem,
+    BottomNavItem.BillingItem,
+    BottomNavItem.ClientsItem,
+    BottomNavItem.RoutesItem
 )
-@Preview
+
+
+
 @Composable
 fun BottomNavBar(
-    selectedRoute: BottomNavItem = BottomNavItem.Home, // default selection
-    items: List<BottomNavItem> = bottomNavItems, // default navigation items
-    onItemSelected: (BottomNavItem) -> Unit = {}
+    currentDestination: NavDestination?,
+    onItemClick: (Any) -> Unit // Accept 'Any' because our routes are now objects
 ) {
-    var route by remember { mutableStateOf(selectedRoute) }
-
     Surface(
         modifier = Modifier.padding(horizontal = 8.dp).fillMaxWidth(),
         shape = roundCornerTop(),
@@ -110,42 +107,40 @@ fun BottomNavBar(
         shadowElevation = 6.dp
     ) {
 
-        NavigationBar(
-            containerColor = MaterialTheme .colorScheme.surface
-        ) {
-            items.forEach { item ->
-                val isSelected = route == item
+    NavigationBar(
+        containerColor = MaterialTheme .colorScheme.surface
+    ) {
+        bottomNavItems.forEach { item ->
+            // Check if the current destination is an instance of the route class
+            val isSelected = currentDestination?.hasRoute(item.route::class) == true
 
-                NavigationBarItem(
-                    selected = isSelected,
-                    onClick = {
-route=item
-                        onItemSelected(item) },
-                    icon = {
-                        Image(
-                            painter = painterResource(item.icon),
-                            contentDescription = item.label,
-                            modifier = Modifier.size(24.dp),
-                            colorFilter = ColorFilter.tint(
-                                if (isSelected)
-                                    MaterialTheme.colorScheme.secondary
-                                else
-                                    MaterialTheme.colorScheme.onSurface
-                            )
+            NavigationBarItem(
+                selected = isSelected,
+                onClick = { onItemClick(item.route) },
+                icon = {
+                    Image(
+                        painter = painterResource(item.icon),
+                        contentDescription = item.label,
+                        modifier = Modifier.size(28.dp),
+                        colorFilter = ColorFilter.tint(
+                            if (isSelected)
+                                MaterialTheme.colorScheme.secondary
+                            else
+                                MaterialTheme.colorScheme.onSurface
                         )
-                    },
-                    label = { Text(item.label) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = MaterialTheme.colorScheme.secondary,
-                        selectedTextColor = MaterialTheme.colorScheme.secondary,
-                        unselectedIconColor = MaterialTheme.colorScheme.onSurface,
-                        unselectedTextColor = MaterialTheme.colorScheme.onSurface,
-                        indicatorColor = Color.Transparent
                     )
-
+                },
+                label = { Text(item.label) },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.secondary,
+                    selectedTextColor = MaterialTheme.colorScheme.secondary,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurface,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurface,
+                    indicatorColor = Color.Transparent
                 )
-            }
+
+            )
         }
-    }
+    }}
 }
 

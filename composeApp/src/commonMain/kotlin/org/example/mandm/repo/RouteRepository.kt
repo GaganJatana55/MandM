@@ -58,25 +58,29 @@ class RouteRepository(
 
 
 object DefaultRouteFactory {
+    val morningRoute = RouteEntity(
+        routeName = "Morning",
+        routeStartTime = "03:30 AM",
+        routeEndTime = "03:30 PM",
+        active = true,
+        autoStart = true
+    )
+
+    val eveningRoute = RouteEntity(
+        routeName = "Evening",
+        routeStartTime = "03:30 PM",
+        routeEndTime = "03:30 AM",
+        active = true,
+        autoStart = true
+    )
 
     fun createDefaultRoutes(): List<RouteEntity> {
 
-        val morningRoute = RouteEntity(
-            routeName = "Morning",
-            routeStartTime = "03:30 AM",
-            routeEndTime = "03:30 PM",
-            active = true,
-            autoStart = true
-        )
 
-        val eveningRoute = RouteEntity(
-            routeName = "Evening",
-            routeStartTime = "03:30 PM",
-            routeEndTime = "03:30 AM",
-            active = true,
-            autoStart = true
-        )
 
         return listOf(morningRoute, eveningRoute)
     }
+
+    fun isMorningRoute(route: RouteEntity)= route.routeName==morningRoute.routeName
+    fun isEveningRoute(route: RouteEntity)= route.routeName==eveningRoute.routeName
 }
