@@ -59,6 +59,7 @@ kotlin {
             implementation(libs.sqlite.bundled)
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
             implementation("com.russhwolf:multiplatform-settings-no-arg:1.1.1")
+
             implementation(libs.ktor.http)
             implementation(libs.navigation.compose)
 //            implementation(libs.androidx.navigation.compose)

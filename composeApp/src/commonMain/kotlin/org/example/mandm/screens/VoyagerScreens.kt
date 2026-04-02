@@ -30,6 +30,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import bottomNavItems
 import io.ktor.http.encodeURLParameter
 import mandm.composeapp.generated.resources.Res
 import mandm.composeapp.generated.resources.add_icon
@@ -41,8 +42,9 @@ import org.example.mandm.screens.screenNavigationParams.Routes
 import org.example.mandm.screens.screenNavigationParams.RoutesEditDetail
 import org.example.mandm.screens.screenNavigationParams.SelectRole
 import org.example.mandm.screens.screenNavigationParams.SignUp
+import org.example.mandm.screens.screenNavigationParams.topLevelRoutes
 import org.jetbrains.compose.resources.painterResource
-
+import androidx.navigation.NavDestination.Companion.hasRoute
 
 @Composable
 fun AuthNavigation(onLoginSuccess: () -> Unit) {
@@ -65,6 +67,7 @@ fun AuthNavigation(onLoginSuccess: () -> Unit) {
         }
     }
 }
+
 @Composable
 fun MainTabsScreen() {
 
@@ -84,74 +87,84 @@ fun MainTabsContent() {
     val fabSize = 62.dp
     val navController = LocalNavController.current
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    var showAddTransactionDialog by rememberSaveable { mutableStateOf(false) }
-
-    // This helps the BottomBar know which icon to highlight
     val currentDestination = navBackStackEntry?.destination
+    var showAddTransactionDialog by rememberSaveable { mutableStateOf(false) }
+// THE LOGIC: Is the current screen one of our 4 main tabs?
+    val shouldShowBottomBar = topLevelRoutes.any { routeClass ->
+        currentDestination?.hasRoute(routeClass) == true
+    }
+    // This helps the BottomBar know which icon to highlight
+
     MilkSellerTheme {
         BoxWithConstraints(Modifier.fillMaxSize()) {
-    val fabOffset = (maxWidth / 2) - ((fabSize) / 2) - 16.dp
-    Scaffold(
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        floatingActionButton = {
-        FloatingActionButton(
-            onClick = { showAddTransactionDialog = true },
-            shape = CircleShape,
-            containerColor = MaterialTheme.colorScheme.secondary,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(end = fabOffset, bottom = 44.dp)
-                .size(fabSize)
-        ) {
-            Image(
-                modifier = Modifier.size(32.dp),
-                painter = painterResource(Res.drawable.add_icon),
-                contentDescription = "Add",
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
-            )
-        }
-    },
-        floatingActionButtonPosition = FabPosition.EndOverlay,
-
-        bottomBar = {
-            BottomNavBar(
-                currentDestination = currentDestination,
-                onItemClick = { destination ->
-                    navController.navigate(destination) {
-                        // Standard Tab Navigation Logic
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
+            val fabOffset = (maxWidth / 2) - ((fabSize) / 2) - 16.dp
+            Scaffold(
+                contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                floatingActionButton = {
+                    if (shouldShowBottomBar) {
+                        FloatingActionButton(
+                            onClick = { showAddTransactionDialog = true },
+                            shape = CircleShape,
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                            contentColor = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(end = fabOffset, bottom = 44.dp)
+                                .size(fabSize)
+                        ) {
+                            Image(
+                                modifier = Modifier.size(32.dp),
+                                painter = painterResource(Res.drawable.add_icon),
+                                contentDescription = "Add",
+                                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
+                            )
                         }
-                        launchSingleTop = true
-                        restoreState = true
+                    }
+                },
+                floatingActionButtonPosition = FabPosition.EndOverlay,
+
+                bottomBar = {
+                    if (shouldShowBottomBar) {
+                        BottomNavBar(
+                            currentDestination = currentDestination,
+                            onItemClick = { destination ->
+                                navController.navigate(destination) {
+                                    // Standard Tab Navigation Logic
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                        )
                     }
                 }
-            )
-        }
-    ) { padding ->
-        NavHost(
-            navController = navController,
-            startDestination = Home,
-            modifier = Modifier.padding(padding)
-        ) {
-            composable<Home> { DailyRouteData() }
-            composable<Billing> { UsersLandingScreen() }
-            composable<Clients> { UsersListScreen() }
-            composable<Routes> { RouteListScreen() }
-            composable<RoutesEditDetail> { backStackEntry->
-                val args=backStackEntry.toRoute<RoutesEditDetail>()
-                EditRouteUserScreen(args.routeId,args.routeName) }
+            ) { padding ->
+                NavHost(
+                    navController = navController,
+                    startDestination = Home,
+                    modifier = Modifier.padding(padding)
+                ) {
+                    composable<Home> { DailyRouteData() }
+                    composable<Billing> { UsersLandingScreen() }
+                    composable<Clients> { UsersListScreen() }
+                    composable<Routes> { RouteListScreen() }
+                    composable<RoutesEditDetail> { backStackEntry ->
+                        val args = backStackEntry.toRoute<RoutesEditDetail>()
+                        EditRouteUserScreen(args.routeId, args.routeName)
+                    }
 
-            // Modern Type-Safe Arguments
-            composable<BillingDetailsParams> { backStackEntry ->
-                val args = backStackEntry.toRoute<BillingDetailsParams>()
-                BillListScreen(userId = args.userId, userName = args.userName)
+                    // Modern Type-Safe Arguments
+                    composable<BillingDetailsParams> { backStackEntry ->
+                        val args = backStackEntry.toRoute<BillingDetailsParams>()
+                        BillListScreen(userId = args.userId, userName = args.userName)
+                    }
+                }
             }
-        }
-    }
             if (showAddTransactionDialog) {
                 TransactionDialog(onDismiss = { showAddTransactionDialog = false })
             }
-        }}
+        }
+    }
 }
 
 

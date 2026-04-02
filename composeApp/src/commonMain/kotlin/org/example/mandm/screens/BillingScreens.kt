@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -38,7 +37,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import mandm.composeapp.generated.resources.Res
 import mandm.composeapp.generated.resources.milk
 import mandm.composeapp.generated.resources.money
@@ -50,7 +48,7 @@ import org.example.mandm.commonComponent.ButtonRoundCorner
 import org.example.mandm.commonComponent.CommonSurfaceCard
 import org.example.mandm.commonComponent.FilledActionButton
 import org.example.mandm.commonComponent.GetCommonScaffoldWithColumnCenter
-import org.example.mandm.commonComponent.Line
+import org.example.mandm.commonComponent.CommonDefaultDividerHorizontal
 import org.example.mandm.dataModel.BalanceUiState
 import org.example.mandm.dataModel.LedgerItem
 import org.example.mandm.dataModel.MilkTransactionWithLogs
@@ -123,13 +121,13 @@ fun List(modifier: Modifier = Modifier, userId: Long) {
                 selectedYearMonth = newYearMonth
                 viewModel.setYearMonth(newYearMonth)
             }
-            Line()
+            CommonDefaultDividerHorizontal()
             LazyColumn {
                 item { SelectedMonthStats(Modifier, viewModel) }
                 item {
                     Spacer(Modifier.height(4.dp))
                 }
-                item{Line()}
+                item{CommonDefaultDividerHorizontal()}
                 items(
                     items = ledgerList,
                     key = { "${it::class}_${it.id}" }
@@ -270,7 +268,7 @@ fun MilkRowItem(
             }
 
         }
-        Line()
+        CommonDefaultDividerHorizontal()
     }
 }
 
@@ -387,7 +385,7 @@ fun MoneyRowItem(
             }
         }
 
-        Line()
+        CommonDefaultDividerHorizontal()
     }
 }
 
@@ -527,7 +525,7 @@ fun MilkRowItemOld(
                 fontWeight = FontWeight.Bold
             )
         }
-        Line()
+        CommonDefaultDividerHorizontal()
     }
 }
 
@@ -656,7 +654,7 @@ fun MoneyRowItemOld(
             )
         }
 
-        Line()
+        CommonDefaultDividerHorizontal()
     }
 }
 
@@ -1015,7 +1013,7 @@ fun CompactMonthlySummary(
         Spacer(Modifier.height(6.dp))
 
         // Divider
-        Line()
+        CommonDefaultDividerHorizontal()
 
         Spacer(Modifier.height(6.dp))
 

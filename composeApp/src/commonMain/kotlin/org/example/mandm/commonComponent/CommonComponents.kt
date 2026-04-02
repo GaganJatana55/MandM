@@ -534,9 +534,9 @@ fun BottomSurfaceCard(
     content: @Composable () -> Unit
 ) {
     Surface(
-        modifier = modifier
+        modifier = modifier.fillMaxWidth()
             .mainBackground().padding(horizontal =12.dp ),
-        shape = roundCorner(),
+        shape = roundCornerTop(),
         shadowElevation = 2.dp
     ) {
         Box(Modifier.paddingCommon(), contentAlignment = contentAlignMent) {

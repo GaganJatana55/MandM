@@ -1,6 +1,7 @@
 package org.example.mandm.repo
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
 import org.example.mandm.dao.RouteDao
 import org.example.mandm.dataModel.CustomerEntity
 import org.example.mandm.dataModel.CustomerRouteItem
@@ -8,6 +9,7 @@ import org.example.mandm.dataModel.RouteEntity
 
 class RouteRepository(
     private val routeDao: RouteDao
+
 ) {
     // Routes
     suspend fun insertRoute(route: RouteEntity): Long = routeDao.insertRoute(route)
@@ -52,6 +54,34 @@ class RouteRepository(
         }
 
         routeDao.updateCustomerRouteItems(updatedList)
+    }
+    suspend fun getCustomerRouteItems(id:Int) =routeDao.getCustomerRouteItems(id)
+
+
+    /**
+     * Fetch the list once to populate the ViewModel's mutableStateListOf.
+     */
+    suspend fun getCustomerRouteItemsSnapshot(routeId: Int): List<CustomerRouteItem> {
+        return routeDao.getCustomerRouteItemsSnapshot(routeId)
+
+    }
+
+    /**
+     * Synchronize the entire local list state back to the database.
+     */
+    suspend fun upsertCustomerRouteItems(items: List<CustomerRouteItem>) {
+
+            routeDao.upsertCustomerRouteItems(items)
+
+    }
+
+    /**
+     * Hard delete of a specific item instance from the database.
+     */
+    suspend fun deleteCustomerRouteItem(item: CustomerRouteItem) {
+
+            routeDao.deleteCustomerRouteItem(item)
+
     }
 
 }

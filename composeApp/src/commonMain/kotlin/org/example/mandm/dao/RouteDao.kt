@@ -75,6 +75,38 @@ interface RouteDao {
         routeId: Int
     ): Flow<List<CustomerRouteWithDetails>>
 
+    @Query(
+        """
+        SELECT * 
+        FROM CustomerRouteItem
+        WHERE routeId = :routeId
+        ORDER BY sequenceNumber
+        """
+    )
+    fun getCustomerRouteItems(
+        routeId: Int
+    ): Flow<List<CustomerRouteItem>>
+
+
+
+    /**
+     * Snapshot fetch (non-Flow) for the initial loading of the State-First list.
+     */
+    @Query("SELECT * FROM CustomerRouteItem WHERE routeId = :routeId ORDER BY sequenceNumber ASC")
+    suspend fun getCustomerRouteItemsSnapshot(routeId: Int): List<CustomerRouteItem>
+
+    /**
+     * Upsert handles both inserting new items (id=0) and updating moved items.
+     */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertCustomerRouteItems(items: List<CustomerRouteItem>)
+
+    /**
+     * Specific deletion using the Primary Key 'id' to ensure
+     * only the targeted instance is removed.
+     */
+    @Delete
+    suspend fun deleteCustomerRouteItem(item: CustomerRouteItem): Int
 }
 
 

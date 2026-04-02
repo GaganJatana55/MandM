@@ -100,6 +100,7 @@ fun BottomNavBar(
     currentDestination: NavDestination?,
     onItemClick: (Any) -> Unit // Accept 'Any' because our routes are now objects
 ) {
+    
     Surface(
         modifier = Modifier.padding(horizontal = 8.dp).fillMaxWidth(),
         shape = roundCornerTop(),
